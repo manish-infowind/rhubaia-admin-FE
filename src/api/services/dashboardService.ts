@@ -282,6 +282,35 @@ export interface PerformanceMetrics {
   throughput: number;
 }
 
+export interface FeedResponseTimeData {
+  date: string;
+  averageResponseTimeMs: number;
+  /** Per-endpoint metrics when API returns endpoints (e.g. matches, feed) */
+  endpoints?: ApiResponseMetricsEndpoint[];
+}
+
+/** Per-endpoint metrics from api-response-metrics */
+export interface ApiResponseMetricsEndpoint {
+  endpoint: string;
+  totalRequests: number;
+  avgResponseTimeMs: number;
+}
+
+/** Backend returns apiResponseMetrics (avgResponseTimeMs + endpoints); we map to feedResponseTime for charts */
+export interface ApiResponseMetricsItem {
+  date: string;
+  totalRequests: number;
+  avgResponseTimeMs: number;
+  endpoints?: ApiResponseMetricsEndpoint[];
+}
+
+export interface FeedResponseTimeResponse {
+  feedResponseTime?: FeedResponseTimeData[];
+  /** Backend shape: api-response-metrics returns this */
+  apiResponseMetrics?: ApiResponseMetricsItem[];
+  metadata?: { totalRecords: number; startDate: string; endDate: string; timeRange: string; selectedYears?: number[] };
+}
+
 export interface AnalyticsData {
   userGrowth: UserGrowthData[];
   activeUsers: ActiveUsersData[];
@@ -291,6 +320,7 @@ export interface AnalyticsData {
   conversationAnalytics?: ConversationAnalyticsData[];
   appStoreInstallStats?: AppStoreInstallStatsData[];
   safetyMetrics?: SafetyMetricsData[];
+  feedResponseTime?: FeedResponseTimeData[];
 }
 
 export interface DashboardData {
@@ -471,6 +501,42 @@ export class DashboardService {
         timeout: API_CONFIG.ANALYTICS_TIMEOUT
       });
       
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get feed average response time (daily/weekly/monthly/custom). No gender filter.
+  static async getFeedResponseTime(
+    timeRange: 'daily' | 'weekly' | 'monthly' | 'custom',
+    options: {
+      month?: number;
+      year?: number;
+      years?: number[];
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ): Promise<ApiResponse<FeedResponseTimeResponse>> {
+    try {
+      const params = new URLSearchParams({ timeRange });
+
+      if (timeRange === 'daily' || timeRange === 'weekly') {
+        if (options.month !== undefined) params.append('month', options.month.toString());
+        if (options.year !== undefined) params.append('year', options.year.toString());
+      } else if (timeRange === 'monthly') {
+        if (options.years?.length) {
+          options.years.forEach(year => params.append('years', year.toString()));
+        }
+      } else if (timeRange === 'custom') {
+        if (options.startDate) params.append('startDate', options.startDate.toISOString());
+        if (options.endDate) params.append('endDate', options.endDate.toISOString());
+      }
+
+      const url = `${API_CONFIG.ENDPOINTS.DASHBOARD.FEED_RESPONSE_TIME}?${params.toString()}`;
+      const response = await apiClient.get<FeedResponseTimeResponse>(url, {
+        timeout: API_CONFIG.ANALYTICS_TIMEOUT
+      });
       return response;
     } catch (error) {
       throw error;

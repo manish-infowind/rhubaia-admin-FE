@@ -20,6 +20,8 @@ interface ChartCardProps {
   delay?: number;
   originalData?: any; // Original analytics data for year breakdown
   loading?: boolean; // Loading state for the chart
+  /** When true, hide the gender filter (e.g. Feed Response Time - no male/female) */
+  hideGenderFilter?: boolean;
 }
 
 export function ChartCard({
@@ -32,7 +34,8 @@ export function ChartCard({
   dataKeys,
   delay = 0.2,
   originalData,
-  loading = false
+  loading = false,
+  hideGenderFilter = false
 }: ChartCardProps) {
   return (
     <motion.div
@@ -52,6 +55,7 @@ export function ChartCard({
               onConfigChange={onConfigChange}
               title={title}
               iconColor={iconColor}
+              hideGenderFilter={hideGenderFilter}
             />
           </div>
         </CardHeader>

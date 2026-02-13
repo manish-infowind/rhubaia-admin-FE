@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for API calls - production server
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/admin',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://18.169.19.110:8000/admin',
   
   // Default timeout for API requests (in milliseconds)
   TIMEOUT: 10000,
@@ -107,6 +107,7 @@ export const API_CONFIG = {
       APP_STORE_INSTALL_STATS: '/dashboard/analytics/app-store-install-stats',
       SAFETY_METRICS: '/dashboard/analytics/safety-metrics',
       ACTIVE_USERS_MAP: '/api/active-users-map',
+      FEED_RESPONSE_TIME: '/dashboard/tech-health/api-response-metrics',
     },
     ENQUIRIES: {
       LIST: '/enquiries',
@@ -189,8 +190,15 @@ export const API_CONFIG = {
       LIST: '/activity-logs',
       USERS: '/activity-logs/users',
     },
+    TECH_HEALTH: {
+      FEED_RESPONSE_TIME: '/tech-health/feed-response-time',
+      CRASH_FREE_USERS: '/tech-health/crash-free-users',
+    },
   },
 } as const;
+
+// PM2 Dashboard URL (default: PM2+ Monit; override in .env as VITE_PM2_DASHBOARD_URL)
+export const PM2_DASHBOARD_URL = import.meta.env.VITE_PM2_DASHBOARD_URL || 'https://app.pm2.io/';
 
 // HTTP Status Codes
 export const HTTP_STATUS = {

@@ -28,6 +28,7 @@ import FlaggedUsers from "./pages/admin/FlaggedUsers";
 import Report from "./pages/admin/Report";
 import ReportDetailsPage from "./pages/admin/ReportDetailsPage";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import TechHealthMonitoring from "./pages/admin/TechHealthMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -238,6 +239,16 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <ActivityLogs />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/tech-health"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <TechHealthMonitoring />
                 </AdminLayout>
               </ProtectedRoute>
             }

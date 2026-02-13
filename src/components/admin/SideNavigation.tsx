@@ -11,6 +11,7 @@ import {
   ScanFace,
   ClipboardPenLine,
   History,
+  Activity,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,6 +53,11 @@ const navigation = [
     name: "Activity Logs",
     href: "/admin/activity-logs",
     icon: History,
+  },
+  {
+    name: "Health & Monitoring",
+    href: "/admin/tech-health",
+    icon: Activity,
   },
 ];
 
