@@ -254,6 +254,27 @@ export interface SafetyMetricsResponse {
   metadata: SafetyMetricsMetadata;
 }
 
+// GeoJSON types for map visualization
+export interface MapFeatureProperties {
+  count: number;
+  city: string;
+  conversionRate?: number; // Conversion rate percentage
+  paidUsers?: number; // Number of paid users
+  freeUsers?: number; // Number of free users
+  paidToFreeRatio?: number; // Ratio of paid to free users
+}
+
+export interface MapFeature extends GeoJSON.Feature<GeoJSON.Point, MapFeatureProperties> {
+  type: 'Feature';
+  properties: MapFeatureProperties;
+  geometry: GeoJSON.Point;
+}
+
+export interface ActiveUsersMapResponse extends GeoJSON.FeatureCollection<GeoJSON.Point, MapFeatureProperties> {
+  type: 'FeatureCollection';
+  features: MapFeature[];
+}
+
 export interface PerformanceMetrics {
   averageResponseTime: number;
   uptime: number;
@@ -751,6 +772,30 @@ export class DashboardService {
       const url = `${API_CONFIG.ENDPOINTS.DASHBOARD.SAFETY_METRICS}?${params.toString()}`;
       // Use extended timeout for analytics API (2 minutes)
       const response = await apiClient.get<SafetyMetricsResponse>(url, {
+        timeout: API_CONFIG.ANALYTICS_TIMEOUT
+      });
+      
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Get active users map data (GeoJSON)
+  static async getActiveUsersMap(timeWindow?: number): Promise<ApiResponse<ActiveUsersMapResponse>> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (timeWindow !== undefined) {
+        params.append('timeWindow', timeWindow.toString());
+      }
+
+      const url = params.toString() 
+        ? `${API_CONFIG.ENDPOINTS.DASHBOARD.ACTIVE_USERS_MAP}?${params.toString()}`
+        : API_CONFIG.ENDPOINTS.DASHBOARD.ACTIVE_USERS_MAP;
+      
+      // Use extended timeout for analytics API (2 minutes)
+      const response = await apiClient.get<ActiveUsersMapResponse>(url, {
         timeout: API_CONFIG.ANALYTICS_TIMEOUT
       });
       

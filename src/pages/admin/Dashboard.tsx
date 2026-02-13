@@ -5,6 +5,7 @@ import {
   DollarSign,
   MessageSquare,
   Shield,
+  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
@@ -17,6 +18,7 @@ import { useChartData } from "@/hooks/useChartData";
 import { useDashboardStatsSummary } from "@/hooks/useDashboardStatsSummary";
 import PageHeader from "@/components/common/PageHeader";
 import PageLoader from "@/components/common/PageLoader";
+import { ActivityMap } from "@/components/admin/dashboard/ActivityMap";
 
 // Helper function to create initial chart config
 const createChartConfig = (): ChartConfig => {
@@ -175,13 +177,6 @@ export default function Dashboard() {
       title: "User Growth",
       value: statsSummary.newUsersThisMonth.toString(),
       change: "New users this month",
-      icon: TrendingUp,
-      color: "bg-brand-green",
-    },
-    {
-      title: "Swipe To Match Rate",
-      value: `${statsSummary.swipeToMatchRate.toFixed(2)}%`,
-      change: "Swipe to match rate this month",
       icon: TrendingUp,
       color: "bg-brand-green",
     }
@@ -909,6 +904,25 @@ export default function Dashboard() {
           originalData={safetyMetricsData}
           loading={safetyMetricsLoading}
         />
+
+        {/* User Activity Map */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.9 }}
+        >
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg mb-4">
+                <MapPin className="h-5 w-5 text-brand-teal" />
+                User Activity Map
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ActivityMap />
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
