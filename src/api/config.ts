@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for API calls - production server
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/admin',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://18.169.19.110:8000/admin',
   
   // Default timeout for API requests (in milliseconds)
   TIMEOUT: 10000,
