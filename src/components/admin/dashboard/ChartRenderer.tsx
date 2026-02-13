@@ -53,6 +53,10 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
     )) {
       return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
+    // Response time metrics (ms) – e.g. Radar (Matches), Feed, Avg Response (ms)
+    if (keyToCheck && (keyToCheck.includes('Radar') || keyToCheck.includes('Feed') || keyToCheck.includes('Avg Response (ms)'))) {
+      return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ms`;
+    }
     // Check if this is a rate metric that should have percentage symbol (but not Total Reports or Total Banned Accounts)
     if (keyToCheck && (
       keyToCheck.includes('Churn Rate') || 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { DashboardService, AnalyticsData, UserGrowthResponse, ActiveUsersResponse, ConversionAnalyticsResponse, ConversionDataPoint, RevenueAnalyticsResponse, ConversationAnalyticsResponse, AppStoreInstallStatsResponse, SafetyMetricsResponse } from "@/api/services/dashboardService";
+import { DashboardService, AnalyticsData, UserGrowthResponse, ActiveUsersResponse, ConversionAnalyticsResponse, ConversionDataPoint, RevenueAnalyticsResponse, ConversationAnalyticsResponse, AppStoreInstallStatsResponse, SafetyMetricsResponse, FeedResponseTimeResponse } from "@/api/services/dashboardService";
 import { ChartConfig } from "@/components/admin/dashboard/ChartFilters";
 
 // Generate mock analytics data based on date range
@@ -1101,9 +1101,125 @@ const loadChartData = async (chartConfig: ChartConfig): Promise<AnalyticsData | 
   }
 };
 
+// Generate mock feed response time data (no gender - aggregate only)
+const generateMockFeedResponseTimeData = (
+  startDate: Date,
+  endDate: Date,
+  timeRange: 'daily' | 'weekly' | 'monthly' | 'custom',
+  selectedYears?: number[]
+): AnalyticsData => {
+  const feedResponseTime: { date: string; averageResponseTimeMs: number }[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  let interval = 1;
+  if (timeRange === 'weekly') interval = 7;
+  else if (timeRange === 'monthly') interval = 30;
+
+  let currentDate = new Date(start);
+  let count = 0;
+  while (currentDate <= end && count < 100) {
+    let dateStr: string;
+    if (timeRange === 'daily' || (timeRange === 'custom' && diffDays <= 31)) {
+      dateStr = format(currentDate, 'MMM dd, yyyy');
+    } else if (timeRange === 'weekly' || (timeRange === 'custom' && diffDays <= 90)) {
+      dateStr = `Week ${Math.ceil(count / 7) + 1} (${format(currentDate, 'MMM yyyy')})`;
+    } else {
+      dateStr = format(currentDate, 'MMM yyyy');
+    }
+    feedResponseTime.push({
+      date: dateStr,
+      averageResponseTimeMs: Math.round(80 + Math.random() * 120),
+    });
+    if (timeRange === 'daily' || (timeRange === 'custom' && diffDays <= 31)) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    } else if (timeRange === 'weekly' || (timeRange === 'custom' && diffDays <= 90)) {
+      currentDate.setDate(currentDate.getDate() + 7);
+    } else {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    count++;
+  }
+
+  return {
+    userGrowth: [],
+    activeUsers: [],
+    conversions: [],
+    performance: { averageResponseTime: 0, uptime: 0, errorRate: 0, throughput: 0 },
+    feedResponseTime,
+  };
+};
+
+// Load feed response time (no gender filter - same endpoint pattern as other dashboard charts)
+const loadFeedResponseTimeData = async (chartConfig: ChartConfig): Promise<AnalyticsData | null> => {
+  try {
+    const options: { month?: number; year?: number; years?: number[]; startDate?: Date; endDate?: Date } = {};
+    if (chartConfig.timeRange === 'daily' || chartConfig.timeRange === 'weekly') {
+      if (chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
+        options.month = chartConfig.selectedMonth;
+        options.year = chartConfig.selectedYear;
+      }
+    } else if (chartConfig.timeRange === 'monthly') {
+      if (chartConfig.selectedYears?.length) options.years = chartConfig.selectedYears;
+    } else if (chartConfig.timeRange === 'custom') {
+      if (chartConfig.dateRange.from && chartConfig.dateRange.to) {
+        options.startDate = chartConfig.dateRange.from;
+        options.endDate = chartConfig.dateRange.to;
+      }
+    }
+
+    const response = await DashboardService.getFeedResponseTime(chartConfig.timeRange, options);
+    // Use real API data: backend returns apiResponseMetrics (avgResponseTimeMs), not feedResponseTime
+    if (response?.data) {
+      const raw = response.data;
+      let feedResponseTime: { date: string; averageResponseTimeMs: number; endpoints?: { endpoint: string; totalRequests: number; avgResponseTimeMs: number }[] }[];
+      if (raw.apiResponseMetrics && Array.isArray(raw.apiResponseMetrics)) {
+        feedResponseTime = raw.apiResponseMetrics.map((item) => ({
+          date: item.date,
+          averageResponseTimeMs: item.avgResponseTimeMs,
+          endpoints: item.endpoints,
+        }));
+      } else if (raw.feedResponseTime && Array.isArray(raw.feedResponseTime)) {
+        feedResponseTime = raw.feedResponseTime;
+      } else {
+        feedResponseTime = [];
+      }
+      return {
+        userGrowth: [],
+        activeUsers: [],
+        conversions: [],
+        performance: { averageResponseTime: 0, uptime: 0, errorRate: 0, throughput: 0 },
+        feedResponseTime,
+      };
+    }
+  } catch {
+    // fallback to mock only on network/error
+  }
+  let calculatedStartDate: Date;
+  let calculatedEndDate: Date = new Date();
+  if (chartConfig.timeRange === 'monthly' && chartConfig.selectedYears?.length) {
+    calculatedStartDate = new Date(Math.min(...chartConfig.selectedYears), 0, 1);
+    calculatedEndDate = new Date(Math.max(...chartConfig.selectedYears), 11, 31);
+  } else if (chartConfig.timeRange === 'custom' && chartConfig.dateRange.from && chartConfig.dateRange.to) {
+    calculatedStartDate = chartConfig.dateRange.from;
+    calculatedEndDate = chartConfig.dateRange.to;
+  } else if (chartConfig.timeRange === 'daily' && chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
+    calculatedStartDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth, 1);
+    calculatedEndDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth + 1, 0);
+  } else if (chartConfig.timeRange === 'weekly' && chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
+    calculatedStartDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth, 1);
+    calculatedEndDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth + 1, 0);
+  } else {
+    calculatedStartDate = (() => { const d = new Date(); d.setMonth(d.getMonth() - 3); return d; })();
+  }
+  return generateMockFeedResponseTimeData(calculatedStartDate, calculatedEndDate, chartConfig.timeRange, chartConfig.selectedYears);
+};
+
 export function useChartData(
   chartConfig: ChartConfig, 
-  apiType: 'userGrowth' | 'activeUsers' | 'conversions' | 'revenue' | 'conversationAnalytics' | 'appStoreInstallStats' | 'safetyMetrics' | 'default' = 'default'
+  apiType: 'userGrowth' | 'activeUsers' | 'conversions' | 'revenue' | 'conversationAnalytics' | 'appStoreInstallStats' | 'safetyMetrics' | 'feedResponseTime' | 'default' = 'default'
 ) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1136,6 +1252,8 @@ export function useChartData(
       loadData = loadAppStoreInstallStatsData;
     } else if (apiType === 'safetyMetrics') {
       loadData = loadSafetyMetricsData;
+    } else if (apiType === 'feedResponseTime') {
+      loadData = loadFeedResponseTimeData;
     } else {
       loadData = loadChartData;
     }
