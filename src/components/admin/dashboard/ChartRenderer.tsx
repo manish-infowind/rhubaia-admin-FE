@@ -73,7 +73,7 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
     return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Custom tooltip component
+  // Custom tooltip component (bar/line)
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -88,6 +88,45 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
       );
     }
     return null;
+  };
+
+  // Pie tooltip: show date + Report Rate, Moderation Backlog, Ban Rate (same as line graph for Safety Metrics)
+  const formatPieMetricValue = (v: string | number | undefined): string => {
+    if (v === undefined) return '—';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' && !isNaN(v)) return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return '—';
+  };
+  const PieTooltipContent = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    const p = payload[0].payload;
+    const hasMetrics = p['Report Rate'] !== undefined || p['Moderation Backlog'] !== undefined || p['Ban Rate'] !== undefined || p['Total Reports'] !== undefined || p['Total Banned Accounts'] !== undefined;
+    if (!hasMetrics) {
+      return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs">
+          <p className="font-semibold mb-2">{p.name}</p>
+          <p className="text-muted-foreground">Total: {formatPieMetricValue(p.value)}</p>
+        </div>
+      );
+    }
+    const reportRateValid = typeof p['Report Rate'] === 'number' && !isNaN(p['Report Rate']);
+    const banRateValid = typeof p['Ban Rate'] === 'number' && !isNaN(p['Ban Rate']);
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-xs">
+        <p className="font-semibold mb-2">{p.name}</p>
+        {reportRateValid ? (
+          <p className="mb-1"><span className="text-muted-foreground">Report Rate:</span> {formatPieMetricValue(p['Report Rate'])}%</p>
+        ) : (
+          <p className="mb-1"><span className="text-muted-foreground">Total Reports:</span> {formatPieMetricValue(p['Total Reports'])}</p>
+        )}
+        <p className="mb-1"><span className="text-muted-foreground">Moderation Backlog:</span> {formatPieMetricValue(p['Moderation Backlog'])}</p>
+        {banRateValid ? (
+          <p className="mb-1"><span className="text-muted-foreground">Ban Rate:</span> {formatPieMetricValue(p['Ban Rate'])}%</p>
+        ) : (
+          <p className="mb-1"><span className="text-muted-foreground">Total Banned Accounts:</span> {formatPieMetricValue(p['Total Banned Accounts'])}</p>
+        )}
+      </div>
+    );
   };
   
   // Calculate if we need dual Y-axis (when values have very different scales)
@@ -344,7 +383,8 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
   // If month is selected, show year breakdown, otherwise show monthly data
   const yearBreakdownData = selectedMonth ? getYearBreakdown(selectedMonth) : [];
   
-  // Pie chart - use all data, not just last 10
+  // Pie chart: date-wise like other charts (one slice per date/row). For multiple dataKeys (e.g. Safety Metrics),
+  // use sum of all metric values for that row so each date has one slice with a sensible value.
   const pieData = selectedMonth && yearBreakdownData.length > 0
     ? yearBreakdownData.map(item => ({
         name: item.name,
@@ -353,39 +393,44 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
       }))
     : data.map(item => {
         const name = item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name;
-        
-        // For multi-year monthly, sum all year values for the month
         let value = 0;
         if (isMultiYearMonthly && selectedYears) {
           selectedYears.forEach((year) => {
-            // For conversion insights, use "value" key; for others use "Total Users"
             const key = conversionType ? `${year} - value` : `${year} - Total Users`;
             const yearValue = item[key];
             if (yearValue !== undefined) {
               value += typeof yearValue === 'number' ? yearValue : Number(yearValue) || 0;
             }
           });
-        } else {
-          // Use the first dataKey for value
-          if (dataKeys && dataKeys.length > 0) {
-            const dataKey = dataKeys[0];
-            const itemValue = item[dataKey];
-            if (itemValue !== undefined) {
-              value = typeof itemValue === 'number' ? itemValue : Number(itemValue) || 0;
-            }
+        } else if (dataKeys && dataKeys.length > 0) {
+          // Date-wise: one value per row. Single dataKey → use that key; multiple (e.g. Safety) → sum all metrics for that date
+          if (dataKeys.length === 1) {
+            const v = item[dataKeys[0]];
+            value = typeof v === 'number' && !isNaN(v) ? v : Number(v) || 0;
+          } else {
+            value = dataKeys.reduce((sum, key) => {
+              const v = item[key];
+              return sum + (typeof v === 'number' && !isNaN(v) ? v : Number(v) || 0);
+            }, 0);
           }
-          // Fallback: try 'value' key if dataKey doesn't exist or is 0
           if (value === 0 && item['value'] !== undefined) {
             value = typeof item['value'] === 'number' ? item['value'] : Number(item['value']) || 0;
           }
         }
-        
-        return {
-          name,
-          value,
-          originalName: item.name
-        };
-      }).filter(item => item.value > 0);
+        const slice: Record<string, string | number | undefined> = { name, value, originalName: item.name };
+        // Attach metric breakdown for pie tooltip (Safety Metrics: rates + totals when "no sufficient data")
+        if (dataKeys && dataKeys.length > 1) {
+          const reportRate = item['Report Rate'];
+          const moderationBacklog = item['Moderation Backlog'];
+          const banRate = item['Ban Rate'];
+          slice['Report Rate'] = reportRate !== undefined ? (typeof reportRate === 'number' && !isNaN(reportRate) ? reportRate : (reportRate as string)) : undefined;
+          slice['Moderation Backlog'] = moderationBacklog !== undefined ? (typeof moderationBacklog === 'number' && !isNaN(moderationBacklog) ? moderationBacklog : (moderationBacklog as string)) : undefined;
+          slice['Ban Rate'] = banRate !== undefined ? (typeof banRate === 'number' && !isNaN(banRate) ? banRate : (banRate as string)) : undefined;
+          slice['Total Reports'] = item['Total Reports'] !== undefined ? (typeof item['Total Reports'] === 'number' ? item['Total Reports'] : Number(item['Total Reports']) || 0) : undefined;
+          slice['Total Banned Accounts'] = item['Total Banned Accounts'] !== undefined ? (typeof item['Total Banned Accounts'] === 'number' ? item['Total Banned Accounts'] : Number(item['Total Banned Accounts']) || 0) : undefined;
+        }
+        return slice;
+      }).filter(item => (item.value as number) > 0);
 
   // If no data, show empty state
   if (pieData.length === 0) {
@@ -422,7 +467,7 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
             cx="50%"
             cy={selectedMonth ? "48%" : "50%"}
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            label={({ name }) => name}
             outerRadius={selectedMonth ? 110 : 120}
             fill="#8884d8"
             dataKey="value"
@@ -448,7 +493,7 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
             ))}
           </Pie>
           <Tooltip 
-            content={<CustomTooltip />}
+            content={<PieTooltipContent />}
             contentStyle={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
               border: '1px solid #e5e7eb',
