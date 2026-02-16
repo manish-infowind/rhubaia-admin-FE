@@ -697,31 +697,6 @@ export function ActivityMap({ className = "" }: ActivityMapProps) {
           </div>
         )}
 
-        {/* Time Window Selector */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-lg p-2.5 shadow-lg border border-gray-200">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-3.5 w-3.5 text-brand-teal" />
-            <span className="text-xs font-semibold text-gray-700">Time Window</span>
-          </div>
-          <Select 
-            value={timeWindow.toString()} 
-            onValueChange={(value) => {
-              const newTimeWindow = parseInt(value);
-              setTimeWindow(newTimeWindow);
-            }}
-          >
-            <SelectTrigger className="h-8 w-[140px] text-xs border-gray-200 hover:border-brand-teal/50 transition-colors">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">Last 5 minutes</SelectItem>
-              <SelectItem value="15">Last 15 minutes</SelectItem>
-              <SelectItem value="30">Last 30 minutes</SelectItem>
-              <SelectItem value="60">Last 60 minutes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Refresh Button */}
         <Button
           size="sm"
@@ -792,13 +767,13 @@ export function ActivityMap({ className = "" }: ActivityMapProps) {
         </div>
       )}
 
-      {/* Geographic Intelligence Panel */}
+      {/* Geographic Intelligence Panel - constrained inside map card, no overflow outside */}
       {!loading && !error && data && data.features.length > 0 && (
-        <div className={`absolute left-4 top-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 transition-all duration-300 ${
-          showIntelligencePanel ? 'w-[320px] max-h-[calc(400px-5rem)]' : 'w-auto'
+        <div className={`absolute left-4 top-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 transition-all duration-300 overflow-hidden flex flex-col max-h-[320px] ${
+          showIntelligencePanel ? 'w-[320px]' : 'w-auto'
         }`}>
           {/* Panel Header */}
-          <div className="p-3 border-b border-gray-200 flex items-center justify-between">
+          <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-brand-teal" />
               <h3 className="text-sm font-semibold text-gray-900">Geographic Intelligence</h3>
@@ -818,7 +793,7 @@ export function ActivityMap({ className = "" }: ActivityMapProps) {
           </div>
 
           {showIntelligencePanel && (
-            <div className="max-h-[350px] overflow-y-auto">
+            <div className="max-h-[260px] overflow-y-auto min-h-0">
               {/* Most Active Cities */}
               <div className="p-3 border-b border-gray-100">
                 <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
@@ -946,7 +921,7 @@ export function ActivityMap({ className = "" }: ActivityMapProps) {
               </p>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                Active in last {timeWindow} {timeWindow === 1 ? 'minute' : 'minutes'}
+                Active Users in 24 hours.
               </p>
             </div>
           </div>
