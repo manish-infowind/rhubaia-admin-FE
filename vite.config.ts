@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => ({
       includeAssets: [
         "favicon.ico",
         "robots.txt",
-        "logo.png",
         "logo.svg",
         "placeholder.svg",
         "decryption-worker.js",
@@ -35,19 +34,19 @@ export default defineConfig(({ mode }) => ({
         background_color: "#0f172a",
         icons: [
           {
-            src: "/logo.png",
+            src: "/logo.svg",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/svg+xml",
           },
           {
-            src: "/logo.png",
+            src: "/logo.svg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/svg+xml",
           },
           {
-            src: "/logo.png",
+            src: "/logo.svg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/svg+xml",
             purpose: "any maskable",
           },
         ],
