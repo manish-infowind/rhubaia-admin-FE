@@ -947,6 +947,46 @@ export interface UserSubscription {
   updatedAt: string;
 }
 
+export interface UserConnectionHistoryUser {
+  uuid: string;
+  email: string | null;
+  username: string | null;
+  fullName: string | null;
+  signUpDate: string | null;
+  avatarUrl: string | null;
+  gender: string | null;
+  currentCity: string | null;
+}
+
+export interface UserConnectionHistoryItem {
+  connectionUuid: string;
+  closetId: string | null;
+  shareScope?: string | null;
+  accessType?: string | null;
+  invitationStatus?: string | null;
+  isRevoked?: boolean;
+  status?: string | null;
+  isBlurred?: boolean;
+  revokedAt?: string | null;
+  createdAt: string | null;
+  connectedUser: UserConnectionHistoryUser;
+}
+
+export interface UserConnectionHistorySummary {
+  sharedClosetWithUserByOthers: number;
+  sharedClosetByUserWithOthers: number;
+  delegatedToUserByOthers: number;
+  delegatedByUserToOthers: number;
+}
+
+export interface UserConnectionHistory {
+  sharedClosetWithUserByOthers: UserConnectionHistoryItem[];
+  sharedClosetByUserWithOthers: UserConnectionHistoryItem[];
+  delegatedToUserByOthers: UserConnectionHistoryItem[];
+  delegatedByUserToOthers: UserConnectionHistoryItem[];
+  summary: UserConnectionHistorySummary;
+}
+
 export interface UserDetails extends UserListItem {
   isPausedByUser: boolean;
   profile: UserProfile;
@@ -954,6 +994,7 @@ export interface UserDetails extends UserListItem {
   interactions: UserInteractions;
   subscriptions: UserSubscription[];
   firstPlan: UserSubscription | null;
+  connectionHistory?: UserConnectionHistory;
 }
 
 export interface UpdateUserRequest {

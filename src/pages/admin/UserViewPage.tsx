@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
     User,
     Mail,
@@ -10,24 +11,15 @@ import {
     MapPin,
     Calendar,
     Shield,
-    Heart,
     Star,
     ArrowLeft,
     Edit,
-    Image as ImageIcon,
     GraduationCap,
     Target,
     Mic,
     FileText,
 } from "lucide-react";
 import { useUserManagement } from "@/api/hooks/useUserManagement";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel";
 import PageLoader from "@/components/common/PageLoader";
 import RetryPage from "@/components/common/RetryPage";
 
@@ -62,10 +54,20 @@ const getStatusBadgeVariant = (status: number, isPaused: boolean, isDeleted: boo
     return 'outline';
 };
 
+const formatDateTime = (value?: string | null): string => {
+    if (!value) return 'N/A';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return 'N/A';
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}/${month}/${year}`;
+};
+
 const UserViewPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const userId = id ? parseInt(id, 10) : 0;
+    const userId = id || '';
 
     const { data: userResponse, isLoading, error } = useUserManagement().useUserDetails(userId);
 
@@ -75,6 +77,26 @@ const UserViewPage = () => {
 
     // Extract user data from API response
     const user = userResponse?.data;
+    const connectionHistory = user?.connectionHistory;
+    const hasConnectionHistory = Boolean(
+        connectionHistory &&
+        (
+            connectionHistory.summary.sharedClosetWithUserByOthers > 0 ||
+            connectionHistory.summary.sharedClosetByUserWithOthers > 0 ||
+            connectionHistory.summary.delegatedToUserByOthers > 0 ||
+            connectionHistory.summary.delegatedByUserToOthers > 0
+        )
+    );
+    const hasProfileData = Boolean(
+        user?.profile &&
+        (
+            user.profile.height ||
+            user.profile.education ||
+            user.profile.relationshipGoal ||
+            user.profile.voiceUrl ||
+            user.profile.bio
+        )
+    );
 
     if (isLoading) {
         return (
@@ -127,7 +149,7 @@ const UserViewPage = () => {
                             <img
                                 src={user.profilePic}
                                 alt={`${user.firstName} ${user.lastName}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover object-top"
                             />
                         ) : (
                             <User className="h-12 w-12 text-brand-green" />
@@ -211,21 +233,9 @@ const UserViewPage = () => {
                             </Badge>
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Face Verified</p>
-                            <Badge variant={user.isFaceVerified ? 'default' : 'secondary'}>
-                                {user.isFaceVerified ? 'Yes' : 'No'}
-                            </Badge>
-                        </div>
-                        <div>
                             <p className="text-sm text-muted-foreground">Created At</p>
                             <p className="font-medium">
-                                {new Date(user.createdAt).toLocaleString()}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">Updated At</p>
-                            <p className="font-medium">
-                                {user.updatedAt ? new Date(user.updatedAt).toLocaleString() : 'N/A'}
+                                {formatDateTime(user.createdAt)}
                             </p>
                         </div>
                         <div>
@@ -245,16 +255,35 @@ const UserViewPage = () => {
 
                 <Separator />
 
-                {/* Profile, Address and Profile Image section  */}
-                <div className="flex flex-col md:grid grid-cols-3 gap-4">
-                    <div className="space-y-4 col-span-2">
+                {/* Profile and Address sections */}
+                <div className="space-y-4">
                         {/* Profile Information */}
-                        {user.profile && (
-                            <div className="space-y-4 p-6 border rounded-lg h-[calc(50%-0.5rem)]">
+                        {hasProfileData && (
+                            <div className="space-y-4 p-6 border rounded-lg">
                                 <h4 className="font-semibold text-lg flex items-center gap-2">
                                     <User className="h-5 w-5" />
                                     Profile Information
                                 </h4>
+                                {user.profileImages && user.profileImages.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-muted-foreground">Profile Images</p>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {user.profileImages.map((imageUrl, index) => (
+                                                <div
+                                                    key={`${imageUrl}-${index}`}
+                                                    className="rounded-md overflow-hidden border bg-muted/20"
+                                                >
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={`Profile image ${index + 1}`}
+                                                        className="w-full h-36 object-cover object-top"
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {user.profile.height && (
                                         <div>
@@ -306,7 +335,7 @@ const UserViewPage = () => {
 
                         {/* Address Information */}
                         {user.address && (
-                            <div className="space-y-4 p-6 border rounded-lg h-[calc(50%-0.5rem)]">
+                            <div className="space-y-4 p-6 border rounded-lg">
                                 <h4 className="font-semibold text-lg flex items-center gap-2">
                                     <MapPin className="h-5 w-5" />
                                     Address Information
@@ -341,93 +370,7 @@ const UserViewPage = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    {/* Profile Images Carousel */}
-                    <div className="space-y-4">
-                        {user.profileImages && user.profileImages.length > 0 && (
-                            <div className="space-y-4 p-6 border rounded-lg">
-                                <h4 className="font-semibold text-lg flex items-center gap-2">
-                                    <ImageIcon className="h-5 w-5" />
-                                    Profile Images ({user.profileImages.length})
-                                </h4>
-                                <div className="relative w-full">
-                                    <Carousel className="w-full max-w-2xl mx-auto">
-                                        <CarouselContent className="-ml-2 md:-ml-4">
-                                            {user.profileImages.map((image, index) => (
-                                                <CarouselItem key={index} className="pl-2 md:pl-4">
-                                                    <div className="relative aspect-square rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800">
-                                                        <img
-                                                            src={image}
-                                                            alt={`Profile ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400?text=Image+Not+Found';
-                                                            }}
-                                                        />
-                                                        <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                                                            {index + 1} / {user.profileImages.length}
-                                                        </div>
-                                                    </div>
-                                                </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                        {user.profileImages.length > 1 && (
-                                            <>
-                                                <CarouselPrevious className="left-0" />
-                                                <CarouselNext className="right-0" />
-                                            </>
-                                        )}
-                                    </Carousel>
-                                </div>
-                            </div>
-                        )}
-                    </div>
                 </div>
-
-                <Separator />
-
-                {/* Interactions */}
-                {user.interactions && (
-                    <div className="space-y-4 p-6 border rounded-lg">
-                        <h4 className="font-semibold text-lg flex items-center gap-2">
-                            <Heart className="h-5 w-5" />
-                            Interactions
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground">Received Likes</p>
-                                <p className="text-2xl font-bold">{user.interactions.receivedLikes}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground">Given Likes</p>
-                                <p className="text-2xl font-bold">{user.interactions.givenLikes}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <Star className="h-3 w-3" />
-                                    Received Super Likes
-                                </p>
-                                <p className="text-2xl font-bold">{user.interactions.receivedSuperLikes}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <Star className="h-3 w-3" />
-                                    Given Super Likes
-                                </p>
-                                <p className="text-2xl font-bold">{user.interactions.givenSuperLikes}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground">Passes</p>
-                                <p className="text-2xl font-bold">{user.interactions.passes}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                                <p className="text-sm text-muted-foreground">Blocks</p>
-                                <p className="text-2xl font-bold">{user.interactions.blocks}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 <Separator />
 
@@ -603,6 +546,151 @@ const UserViewPage = () => {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                <Separator />
+
+                {/* Connection History */}
+                {hasConnectionHistory && connectionHistory && (
+                    <div className="space-y-4 p-6 border rounded-lg">
+                        <h4 className="font-semibold text-lg flex items-center gap-2">
+                            <Shield className="h-5 w-5" />
+                            Connection History
+                        </h4>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div className="p-3 rounded-md bg-muted/40">
+                                <p className="text-muted-foreground">Shared with user</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.sharedClosetWithUserByOthers}</p>
+                            </div>
+                            <div className="p-3 rounded-md bg-muted/40">
+                                <p className="text-muted-foreground">Shared by user</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.sharedClosetByUserWithOthers}</p>
+                            </div>
+                            <div className="p-3 rounded-md bg-muted/40">
+                                <p className="text-muted-foreground">Delegated to user</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.delegatedToUserByOthers}</p>
+                            </div>
+                            <div className="p-3 rounded-md bg-muted/40">
+                                <p className="text-muted-foreground">Delegated by user</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.delegatedByUserToOthers}</p>
+                            </div>
+                        </div>
+
+                        <Accordion type="multiple" className="w-full">
+                            <AccordionItem value="shared-with-user">
+                                <AccordionTrigger>
+                                    Shared closet with user by others ({connectionHistory.sharedClosetWithUserByOthers.length})
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        {connectionHistory.sharedClosetWithUserByOthers.map((item) => (
+                                            <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                                                    {item.connectedUser.avatarUrl ? (
+                                                        <img src={item.connectedUser.avatarUrl} alt={item.connectedUser.fullName || 'User'} className="w-full h-full object-cover object-top" loading="lazy" />
+                                                    ) : (
+                                                        <User className="h-5 w-5 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{item.connectedUser.fullName || item.connectedUser.username || 'Unknown User'}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.connectedUser.email || 'No email'}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Scope: {item.shareScope || 'N/A'} | Access: {item.accessType || 'N/A'} | Status: {item.invitationStatus || 'N/A'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="shared-by-user">
+                                <AccordionTrigger>
+                                    Shared closet by user with others ({connectionHistory.sharedClosetByUserWithOthers.length})
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        {connectionHistory.sharedClosetByUserWithOthers.map((item) => (
+                                            <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                                                    {item.connectedUser.avatarUrl ? (
+                                                        <img src={item.connectedUser.avatarUrl} alt={item.connectedUser.fullName || 'User'} className="w-full h-full object-cover object-top" loading="lazy" />
+                                                    ) : (
+                                                        <User className="h-5 w-5 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{item.connectedUser.fullName || item.connectedUser.username || 'Unknown User'}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.connectedUser.email || 'No email'}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Scope: {item.shareScope || 'N/A'} | Access: {item.accessType || 'N/A'} | Status: {item.invitationStatus || 'N/A'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="delegated-to-user">
+                                <AccordionTrigger>
+                                    Delegated to user by others ({connectionHistory.delegatedToUserByOthers.length})
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        {connectionHistory.delegatedToUserByOthers.map((item) => (
+                                            <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                                                    {item.connectedUser.avatarUrl ? (
+                                                        <img src={item.connectedUser.avatarUrl} alt={item.connectedUser.fullName || 'User'} className="w-full h-full object-cover object-top" loading="lazy" />
+                                                    ) : (
+                                                        <User className="h-5 w-5 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{item.connectedUser.fullName || item.connectedUser.username || 'Unknown User'}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.connectedUser.email || 'No email'}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Status: {item.status || 'N/A'} | Revoked: {item.isRevoked ? 'Yes' : 'No'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="delegated-by-user">
+                                <AccordionTrigger>
+                                    Delegated by user to others ({connectionHistory.delegatedByUserToOthers.length})
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        {connectionHistory.delegatedByUserToOthers.map((item) => (
+                                            <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                                                    {item.connectedUser.avatarUrl ? (
+                                                        <img src={item.connectedUser.avatarUrl} alt={item.connectedUser.fullName || 'User'} className="w-full h-full object-cover object-top" loading="lazy" />
+                                                    ) : (
+                                                        <User className="h-5 w-5 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{item.connectedUser.fullName || item.connectedUser.username || 'Unknown User'}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.connectedUser.email || 'No email'}</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        Status: {item.status || 'N/A'} | Revoked: {item.isRevoked ? 'Yes' : 'No'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </div>
                 )}
             </div>

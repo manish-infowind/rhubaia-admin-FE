@@ -111,7 +111,7 @@ const TopNavigation = ({ onToggleSidebar }: TopNavigationProps) => {
                   }
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {authLoginState?.email || 'admin@pinaypal.com'}
+                  {authLoginState?.email || 'admin@rhubaia.com'}
                 </p>
                 {authLoginState?.role && (
                   <Badge

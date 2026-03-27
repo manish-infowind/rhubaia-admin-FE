@@ -75,7 +75,7 @@ export function ChartCard({
                 chartType={config.chartType}
                 dataKeys={dataKeys}
                 height={400}
-                isMultiYearMonthly={config.timeRange === 'monthly' && config.selectedYears && config.selectedYears.length > 1 && config.chartType === 'pie'}
+                isMultiYearMonthly={false}
                 selectedYears={config.selectedYears}
                 originalData={originalData}
                 conversionType={title === "Conversion Insights Analytics" ? (config as any).conversionType : undefined}

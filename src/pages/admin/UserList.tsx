@@ -122,12 +122,17 @@ const UsersList = () => {
 
     // Sorting
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: '', direction: 'asc' });
+    const visibleTableConfig = useMemo(
+        () => tableConfig.filter((col) => col.label !== "Status"),
+        []
+    );
 
     // Build query params
     const queryParams = useMemo(() => {
         const params: any = {
             page: currentPage,
             limit: pageSize,
+            offset: (currentPage - 1) * pageSize,
         };
 
         if (searchText.trim()) {
@@ -185,12 +190,14 @@ const UsersList = () => {
 
     // Handle view user - navigate to view page
     const handleViewUser = useCallback((user: UserListItem) => {
-        navigate(`/admin/users/${user.id}`);
+        const userRouteId = user.uuid || String(user.id);
+        navigate(`/admin/users/${userRouteId}`);
     }, [navigate]);
 
     // Handle edit user - navigate to edit page
     const handleEditUser = useCallback((user: UserListItem) => {
-        navigate(`/admin/users/${user.id}/edit`);
+        const userRouteId = user.uuid || String(user.id);
+        navigate(`/admin/users/${userRouteId}/edit`);
     }, [navigate]);
 
     // Handle delete user
@@ -206,8 +213,9 @@ const UsersList = () => {
 
     const handleDeleteUser = useCallback(() => {
         if (deleteUser) {
+            const userRouteId = deleteUser.uuid || String(deleteUser.id);
             deleteUserMutation(
-                { id: deleteUser.id },
+                { id: userRouteId },
                 {
                     onSuccess: () => {
                         closeDeleteDialog();
@@ -219,7 +227,8 @@ const UsersList = () => {
 
     // Handle toggle pause
     const handleTogglePause = useCallback((user: UserListItem) => {
-        togglePause(user.id, {
+        const userRouteId = user.uuid || String(user.id);
+        togglePause(userRouteId, {
             onSuccess: () => {
                 toast({
                     title: user.isAccountPaused ? "User Unpaused" : "User Paused",
@@ -245,7 +254,8 @@ const UsersList = () => {
         // If user is already banned, fetch latest moderation/ban details
         if (user.isBanned) {
             setIsLoadingModeration(true);
-            getUserModerationActions(user.id)
+            const userRouteId = user.uuid || String(user.id);
+            getUserModerationActions(userRouteId)
                 .then((response) => {
                     const data = (response as any)?.data ?? (response as any);
                     const actions = data?.actions || data?.data?.actions || [];
@@ -373,7 +383,7 @@ const UsersList = () => {
         // Call API
         banUserMutation(
             {
-                id: selectedUser.id,
+                id: selectedUser.uuid || String(selectedUser.id),
                 data: validationResult.data as {
                     actionType: string;
                     reasonCode: string;
@@ -394,7 +404,7 @@ const UsersList = () => {
         if (!selectedUser) return;
 
         unbanUserMutation(
-            selectedUser.id,
+            selectedUser.uuid || String(selectedUser.id),
             {
                 onSuccess: () => {
                     closeBanDialog();
@@ -534,7 +544,7 @@ const UsersList = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {tableConfig?.map((col) =>
+                                {visibleTableConfig?.map((col) =>
                                     col.sortKey ? (
                                         <SortableHeader
                                             key={col.sortKey}
@@ -560,18 +570,6 @@ const UsersList = () => {
                                                 <User className="h-4 w-4 text-muted-foreground" />
                                                 {user.firstName} {user.lastName}
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={getStatusBadgeVariant(
-                                                    user.accountCurrentStatus,
-                                                    user.isAccountPaused,
-                                                    user.isDeleted
-                                                )}
-                                                className="min-w-[100px] text-center"
-                                            >
-                                                {user.accountStatusName}
-                                            </Badge>
                                         </TableCell>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
@@ -659,7 +657,7 @@ const UsersList = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={tableConfig?.length} className="text-center py-12 text-muted-foreground">
+                                    <TableCell colSpan={visibleTableConfig?.length} className="text-center py-12 text-muted-foreground">
                                         {searchText || statusFilter || genderFilter
                                             ? "No users match your filters."
                                             : "No users found."}

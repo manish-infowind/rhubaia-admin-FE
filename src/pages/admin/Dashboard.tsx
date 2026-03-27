@@ -5,7 +5,6 @@ import {
   DollarSign,
   MessageSquare,
   Shield,
-  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
@@ -18,7 +17,6 @@ import { useChartData } from "@/hooks/useChartData";
 import { useDashboardStatsSummary } from "@/hooks/useDashboardStatsSummary";
 import PageHeader from "@/components/common/PageHeader";
 import PageLoader from "@/components/common/PageLoader";
-import { ActivityMap } from "@/components/admin/dashboard/ActivityMap";
 
 // Helper function to create initial chart config
 const createChartConfig = (): ChartConfig => {
@@ -81,6 +79,7 @@ export default function Dashboard() {
   const [conversationChart, setConversationChart] = useState<ChartConfig>(createChartConfig());
   const [appStoreInstallStatsChart, setAppStoreInstallStatsChart] = useState<ChartConfig>(createChartConfig());
   const [safetyChart, setSafetyChart] = useState<ChartConfig>(createChartConfig());
+  const toSafeArray = <T,>(value: T[] | undefined | null): T[] => (Array.isArray(value) ? value : []);
   // Use custom hook for chart data
   // Fetch stats independently (NO FILTERS - stats remain static)
   const { data: statsSummary, isLoading: statsLoading } = useDashboardStatsSummary();
@@ -154,28 +153,28 @@ export default function Dashboard() {
   const stats = statsSummary ? [
     {
       title: "Total Users",
-      value: statsSummary.totalUsers.toLocaleString(),
+      value: Number(statsSummary.totalUsers ?? 0).toLocaleString(),
       change: "All time",
       icon: Users,
       color: "bg-brand-green",
     },
     {
       title: "Daily Active Users",
-      value: statsSummary.dailyActiveUsers.toLocaleString(),
+      value: Number(statsSummary.dailyActiveUsers ?? 0).toLocaleString(),
       change: "Last 24 hours",
       icon: TrendingUp,
       color: "bg-brand-teal",
     },
     {
       title: "Monthly Active Users",
-      value: statsSummary.monthlyActiveUsers.toLocaleString(),
+      value: Number(statsSummary.monthlyActiveUsers ?? 0).toLocaleString(),
       change: "Last 30 days",
       icon: Users,
       color: "bg-brand-teal",
     },
     {
       title: "User Growth",
-      value: statsSummary.newUsersThisMonth.toString(),
+      value: Number(statsSummary.newUsersThisMonth ?? 0).toLocaleString(),
       change: "New users this month",
       icon: TrendingUp,
       color: "bg-brand-green",
@@ -184,14 +183,15 @@ export default function Dashboard() {
 
   // Prepare chart data for each chart
   const userGrowthChartData = useMemo(() => {
-    if (!userGrowthData) return [];
+    const userGrowthPoints = toSafeArray(userGrowthData?.userGrowth);
+    if (userGrowthPoints.length === 0) return [];
 
     // Handle multi-year monthly comparison
     if (userGrowthChart.timeRange === 'monthly' && userGrowthChart.selectedYears && userGrowthChart.selectedYears.length > 1) {
       // Group data by month and create year-based keys
       const monthDataMap = new Map<string, Record<string, string | number>>();
 
-      userGrowthData.userGrowth.forEach(item => {
+      userGrowthPoints.forEach(item => {
         // Parse "Jan 2024" format
         const parts = item.date.split(' ');
         if (parts.length === 2) {
@@ -218,7 +218,7 @@ export default function Dashboard() {
     }
 
     // Standard format for single year or other time ranges
-    return userGrowthData.userGrowth.map(item => ({
+    return userGrowthPoints.map(item => ({
       name: item.date,
       'Total Users': item.users,
       'New Users': item.newUsers,
@@ -226,13 +226,14 @@ export default function Dashboard() {
   }, [userGrowthData, userGrowthChart.timeRange, userGrowthChart.selectedYears]);
 
   const activeUsersChartData = useMemo(() => {
-    if (!activeUsersData) return [];
+    const activeUsersPoints = toSafeArray(activeUsersData?.activeUsers);
+    if (activeUsersPoints.length === 0) return [];
 
     // Handle multi-year monthly comparison
     if (activeUsersChart.timeRange === 'monthly' && activeUsersChart.selectedYears && activeUsersChart.selectedYears.length > 1) {
       const monthDataMap = new Map<string, Record<string, string | number>>();
 
-      activeUsersData.activeUsers.forEach(item => {
+      activeUsersPoints.forEach(item => {
         const parts = item.date.split(' ');
         if (parts.length === 2) {
           const month = parts[0];
@@ -256,7 +257,7 @@ export default function Dashboard() {
       }) as Array<{ name: string; [key: string]: string | number }>;
     }
 
-    return activeUsersData.activeUsers.map(item => ({
+    return activeUsersPoints.map(item => ({
       name: item.date,
       'Daily Active': item.dailyActive,
       'Monthly Active': item.monthlyActive,
@@ -264,7 +265,8 @@ export default function Dashboard() {
   }, [activeUsersData, activeUsersChart.timeRange, activeUsersChart.selectedYears]);
   // here i need to change to align the months in correct order
   const conversionChartData = useMemo(() => {
-    if (!conversionData) return [];
+    const conversionPoints = toSafeArray(conversionData?.conversions);
+    if (conversionPoints.length === 0) return [];
 
     // For monthly multi-year comparison (bar, line, or pie), show grouped by month
     // with months on the X-axis (Jan, Feb, ...) and one series per year.
@@ -275,7 +277,7 @@ export default function Dashboard() {
     ) {
       const monthDataMap = new Map<string, { name: string; [key: string]: number | string }>();
 
-      const conversions = conversionData.conversions || [];
+      const conversions = conversionPoints;
 
       conversions.forEach((item) => {
         const raw = item.metric;
@@ -319,7 +321,7 @@ export default function Dashboard() {
     }
 
     // Default: single series using value over date/metric
-    const items = conversionData.conversions || [];
+    const items = conversionPoints;
 
     // Sort by actual date (if available) so months are always in proper sequence
     const withTime = items.map(item => {
@@ -345,9 +347,8 @@ export default function Dashboard() {
     conversionChart.chartType,
   ]);
   const revenueChartData = useMemo((): Array<{ name: string; [key: string]: string | number }> => {
-    if (!revenueData || !revenueData.revenueAnalytics) return [];
-
-    const revenueAnalytics = revenueData.revenueAnalytics;
+    const revenueAnalytics = toSafeArray(revenueData?.revenueAnalytics);
+    if (revenueAnalytics.length === 0) return [];
 
     // Handle multi-year monthly comparison
     if (revenueChart.timeRange === 'monthly' && revenueChart.selectedYears && revenueChart.selectedYears.length > 1) {
@@ -427,9 +428,8 @@ export default function Dashboard() {
   }, [revenueData, revenueChart.timeRange, revenueChart.selectedYears]);
 
   const conversationChartData = useMemo((): Array<{ name: string; [key: string]: string | number }> => {
-    if (!conversationData || !conversationData.conversationAnalytics) return [];
-
-    const conversationAnalytics = conversationData.conversationAnalytics;
+    const conversationAnalytics = toSafeArray(conversationData?.conversationAnalytics);
+    if (conversationAnalytics.length === 0) return [];
 
     // Handle multi-year monthly comparison
     if (conversationChart.timeRange === 'monthly' && conversationChart.selectedYears && conversationChart.selectedYears.length > 1) {
@@ -506,9 +506,8 @@ export default function Dashboard() {
   }, [conversationData, conversationChart.timeRange, conversationChart.selectedYears]);
 
   const appStoreInstallStatsChartData = useMemo((): Array<{ name: string; [key: string]: string | number }> => {
-    if (!appStoreInstallStatsData || !appStoreInstallStatsData.appStoreInstallStats) return [];
-
-    const appStoreInstallStats = appStoreInstallStatsData.appStoreInstallStats;
+    const appStoreInstallStats = toSafeArray(appStoreInstallStatsData?.appStoreInstallStats);
+    if (appStoreInstallStats.length === 0) return [];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // Handle multi-year monthly comparison
@@ -601,9 +600,8 @@ export default function Dashboard() {
   }, [appStoreInstallStatsData, appStoreInstallStatsChart.timeRange, appStoreInstallStatsChart.selectedYears]);
 
   const safetyMetricsChartData = useMemo((): Array<{ name: string; [key: string]: string | number }> => {
-    if (!safetyMetricsData || !safetyMetricsData.safetyMetrics) return [];
-
-    const safetyMetrics = safetyMetricsData.safetyMetrics;
+    const safetyMetrics = toSafeArray(safetyMetricsData?.safetyMetrics);
+    if (safetyMetrics.length === 0) return [];
     
     // Helper function to check if an item should use totals
     const shouldUseTotals = (item: typeof safetyMetrics[0]) => {
@@ -733,7 +731,7 @@ export default function Dashboard() {
       <PageHeader
         page="dashboard"
         heading="Dashboard"
-        subHeading="Welcome to your Pinaypal admin panel. Manage your website content from here"
+        subHeading="Welcome to your Rhubaia admin panel. Manage your website content from here"
       />
 
       {/* Stats Cards */}
@@ -905,24 +903,6 @@ export default function Dashboard() {
           loading={safetyMetricsLoading}
         />
 
-        {/* User Activity Map */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.9 }}
-        >
-          <Card className="shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg mb-4">
-                <MapPin className="h-5 w-5 text-brand-teal" />
-                User Activity Map
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ActivityMap />
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </div>
   );

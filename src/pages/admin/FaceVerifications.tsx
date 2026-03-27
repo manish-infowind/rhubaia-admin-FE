@@ -4,14 +4,6 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Eye, CheckCircle2, XCircle, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useFaceVerifications, useApproveOrRejectVerification } from '@/api/hooks/useFaceVerification';
@@ -26,7 +18,6 @@ import { useVerificationStatistics } from '@/api/hooks/useFaceVerification';
 import { format } from 'date-fns';
 import PageHeader from '@/components/common/PageHeader';
 import PageLoader from '@/components/common/PageLoader';
-import { faceVerifyList } from '@/api/mockData';
 import RetryPage from '@/components/common/RetryPage';
 
 export default function FaceVerifications() {
@@ -218,7 +209,7 @@ export default function FaceVerifications() {
           onReset={handleResetFilters}
         />
 
-        {/* Verifications Table */}
+        {/* Verifications List */}
         {isLoading ? (
           <PageLoader pagename="face -verification" />
         ) : verifications.length === 0 ? (
@@ -229,43 +220,32 @@ export default function FaceVerifications() {
           </Card>
         ) : (
           <>
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {faceVerifyList?.map((column) => (
-                      <TableHead key={column} className={column?.toLowerCase() === "actions" ? "text-right" : ""}>{column}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {verifications.map((verification) => {
-                    const user = verification.user;
-                    const userInitials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
-                    return (
-                      <TableRow key={verification.id}>
-                        <TableCell className="font-medium">#{verification.id}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={user.profilePic} alt={`${user.firstName} ${user.lastName}`} />
-                              <AvatarFallback>{userInitials}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div
-                                className="font-medium cursor-pointer hover:underline"
-                                onClick={() => navigate(`/admin/users/${user.id}`)}
-                              >
-                                {user.firstName} {user.lastName}
-                              </div>
-                              <div className="text-sm text-muted-foreground">{user.email}</div>
+            <div className="space-y-4">
+              {verifications.map((verification) => {
+                const user = verification.user;
+                const userInitials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+                return (
+                  <Card key={verification.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.profilePic} alt={`${user.firstName} ${user.lastName}`} />
+                            <AvatarFallback>{userInitials}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-sm text-muted-foreground">#{verification.id}</div>
+                            <div
+                              className="font-medium cursor-pointer hover:underline"
+                              onClick={() => navigate(`/admin/users/${user.uuid || user.id}`)}
+                            >
+                              {user.firstName} {user.lastName}
                             </div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </div>
+                        <div className="flex items-center gap-2">
                           <StatusBadge status={verification.status} />
-                        </TableCell>
-                        <TableCell>
                           {verification.retryCount > 1 ? (
                             <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300">
                               {verification.retryCount} Attempts
@@ -275,78 +255,69 @@ export default function FaceVerifications() {
                               First Attempt
                             </Badge>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-24">
-                            <ScoreIndicator
-                              score={verification.overallScore}
-                              label=""
-                              showValue={true}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-24">
-                            <ScoreIndicator
-                              score={verification.confidence}
-                              label=""
-                              showValue={true}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(verification.createdAt), 'PPp')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {verification.retryCount > 1 && verification.verificationGroupId && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedGroupId(verification.verificationGroupId);
-                                  setIsRetryHistoryOpen(true);
-                                }}
-                                title="View Retry History"
-                              >
-                                <History className="h-4 w-4" />
-                              </Button>
-                            )}
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Overall Score</p>
+                          <ScoreIndicator score={verification.overallScore} label="" showValue={true} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Confidence</p>
+                          <ScoreIndicator score={verification.confidence} label="" showValue={true} />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Created At</p>
+                          <p className="text-sm">{format(new Date(verification.createdAt), 'PPp')}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-end gap-2">
+                        {verification.retryCount > 1 && verification.verificationGroupId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedGroupId(verification.verificationGroupId);
+                              setIsRetryHistoryOpen(true);
+                            }}
+                            title="View Retry History"
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewDetails(verification.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {verification.verificationStatus === 'pending' && (
+                          <>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleViewDetails(verification.id)}
+                              onClick={() => handleApprove(verification)}
+                              className="text-green-600 hover:text-green-700"
                             >
-                              <Eye className="h-4 w-4" />
+                              <CheckCircle2 className="h-4 w-4" />
                             </Button>
-                            {verification.verificationStatus === 'pending' && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleApprove(verification)}
-                                  className="text-green-600 hover:text-green-700"
-                                >
-                                  <CheckCircle2 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleReject(verification)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Card>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReject(verification)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (

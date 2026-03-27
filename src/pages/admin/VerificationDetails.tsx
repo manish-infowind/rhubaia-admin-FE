@@ -206,7 +206,7 @@ export default function VerificationDetails() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigate(`/admin/users/${user.id}`)}
+                        onClick={() => navigate(`/admin/users/${(user as any).uuid || user.id}`)}
                       >
                         <User className="h-4 w-4 mr-2" />
                         View Profile

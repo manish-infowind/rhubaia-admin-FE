@@ -19,20 +19,20 @@
     --popover: 0 0% 100%; /* #FFFFFF */
     --popover-foreground: 0 0% 10%; /* #1A1A1A */
 
-    /* Primary - Purple Brand Color */
-    --primary: 268 95% 60%; /* #A33AF8 */
+    /* Primary - Rhubaia Brand Maroon */
+    --primary: 349 69% 36%; /* #9B1C31 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    /* Secondary - Super Like Blue */
-    --secondary: 195 92% 61%; /* #3FBDF8 */
+    /* Secondary - Brand Red */
+    --secondary: 350 67% 45%; /* #C0243D */
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
     /* Muted */
     --muted: 0 0% 96%; /* #F5F5F5 */
     --muted-foreground: 0 0% 40%; /* #666666 */
 
-    /* Accent - Purple */
-    --accent: 268 95% 60%; /* #A33AF8 */
+    /* Accent - Deep Maroon Tint */
+    --accent: 349 44% 18%; /* #431A24 */
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     /* Destructive - Error Red */
@@ -50,29 +50,29 @@
     /* Border & Input */
     --border: 0 0% 88%; /* #E0E0E0 */
     --input: 0 0% 88%; /* #E0E0E0 */
-    --ring: 268 95% 60%; /* #A33AF8 */
+    --ring: 349 69% 36%; /* #9B1C31 */
 
     --radius: 0.75rem;
 
     /* Sidebar - Light Mode */
     --sidebar-background: 0 0% 100%; /* #FFFFFF */
     --sidebar-foreground: 0 0% 10%; /* #1A1A1A */
-    --sidebar-primary: 268 95% 60%; /* #A33AF8 */
+    --sidebar-primary: 349 69% 36%; /* #9B1C31 */
     --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
-    --sidebar-accent: 268 95% 96%; /* Light purple tint */
-    --sidebar-accent-foreground: 268 95% 20%; /* Dark purple */
+    --sidebar-accent: 347 58% 92%; /* Light rose tint */
+    --sidebar-accent-foreground: 349 69% 24%; /* Dark maroon */
     --sidebar-border: 0 0% 88%; /* #E0E0E0 */
-    --sidebar-ring: 268 95% 60%; /* #A33AF8 */
+    --sidebar-ring: 349 69% 36%; /* #9B1C31 */
 
-    /* Brand colors - Purple Theme */
-    --brand-green: 268 95% 60%; /* #A33AF8 - Main Purple */
-    --brand-teal: 195 92% 61%; /* #3FBDF8 - Super Like Blue */
-    --brand-blue: 268 95% 60%; /* #A33AF8 - Purple (keeping for compatibility) */
+    /* Brand colors - Rhubaia Theme */
+    --brand-green: 349 69% 36%; /* #9B1C31 - Main Maroon */
+    --brand-teal: 350 67% 45%; /* #C0243D - Primary Red */
+    --brand-blue: 347 74% 55%; /* #E23A5A - Highlight Red */
     --brand-gradient: linear-gradient(
       135deg,
-      hsl(268 95% 60%),
-      hsl(195 92% 61%),
-      hsl(268 95% 75%)
+      hsl(349 69% 36%),
+      hsl(350 67% 45%),
+      hsl(347 74% 55%)
     );
   }
 
@@ -87,20 +87,20 @@
     --popover: 0 0% 7%; /* #121212 */
     --popover-foreground: 0 0% 96%; /* #F4F4F4 */
 
-    /* Primary - Purple Brand Color */
-    --primary: 268 95% 60%; /* #A33AF8 */
+    /* Primary - Rhubaia Brand Maroon */
+    --primary: 349 69% 36%; /* #9B1C31 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    /* Secondary - Super Like Blue */
-    --secondary: 195 92% 61%; /* #3FBDF8 */
+    /* Secondary - Brand Red */
+    --secondary: 350 67% 45%; /* #C0243D */
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
     /* Muted */
     --muted: 0 0% 15%; /* #252525 */
     --muted-foreground: 0 0% 70%; /* #B3B3B3 */
 
-    /* Accent - Purple */
-    --accent: 268 95% 60%; /* #A33AF8 */
+    /* Accent - Deep Maroon Tint */
+    --accent: 349 44% 18%; /* #431A24 */
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     /* Destructive - Error Red */
@@ -118,27 +118,27 @@
     /* Border & Input */
     --border: 0 0% 18%; /* #2D2D2D */
     --input: 0 0% 18%; /* #2D2D2D */
-    --ring: 268 95% 60%; /* #A33AF8 */
+    --ring: 349 69% 36%; /* #9B1C31 */
 
     /* Sidebar - Dark Mode */
     --sidebar-background: 0 0% 12%; /* #1E1E1E */
     --sidebar-foreground: 0 0% 96%; /* #F4F4F4 */
-    --sidebar-primary: 268 95% 60%; /* #A33AF8 */
+    --sidebar-primary: 349 69% 36%; /* #9B1C31 */
     --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
     --sidebar-accent: 0 0% 15%; /* #252525 */
     --sidebar-accent-foreground: 0 0% 96%; /* #F4F4F4 */
     --sidebar-border: 0 0% 18%; /* #2D2D2D */
-    --sidebar-ring: 268 95% 60%; /* #A33AF8 */
+    --sidebar-ring: 349 69% 36%; /* #9B1C31 */
 
-    /* Brand colors - Purple Theme (Dark Mode) */
-    --brand-green: 268 95% 60%; /* #A33AF8 - Main Purple */
-    --brand-teal: 195 92% 61%; /* #3FBDF8 - Super Like Blue */
-    --brand-blue: 268 95% 60%; /* #A33AF8 - Purple (keeping for compatibility) */
+    /* Brand colors - Rhubaia Theme (Dark Mode) */
+    --brand-green: 349 69% 36%; /* #9B1C31 - Main Maroon */
+    --brand-teal: 350 67% 45%; /* #C0243D - Primary Red */
+    --brand-blue: 347 74% 55%; /* #E23A5A - Highlight Red */
     --brand-gradient: linear-gradient(
       135deg,
-      hsl(268 95% 60%),
-      hsl(195 92% 61%),
-      hsl(268 95% 75%)
+      hsl(349 69% 36%),
+      hsl(350 67% 45%),
+      hsl(347 74% 55%)
     );
   }
 }
@@ -156,17 +156,17 @@
 @layer utilities {
   /* Solid button with very subtle gradient - appears mostly solid */
   .btn-solid-gradient {
-    background: hsl(268 95% 60%);
-    background-image: linear-gradient(135deg, hsl(268 95% 60%) 0%, hsl(268 95% 60.5%) 100%);
+    background: hsl(349 69% 36%);
+    background-image: linear-gradient(135deg, hsl(349 69% 36%) 0%, hsl(350 67% 45%) 100%);
   }
   
   .btn-solid-gradient:hover {
-    background: hsl(268 95% 58%);
-    background-image: linear-gradient(135deg, hsl(268 95% 58%) 0%, hsl(268 95% 58.5%) 100%);
+    background: hsl(349 69% 32%);
+    background-image: linear-gradient(135deg, hsl(349 69% 32%) 0%, hsl(350 67% 40%) 100%);
   }
   
   /* Solid icon background with subtle gradient */
   .icon-solid-gradient {
-    background: linear-gradient(135deg, hsl(268 95% 60% / 0.2) 0%, hsl(268 95% 60% / 0.18) 100%);
+    background: linear-gradient(135deg, hsl(349 69% 36% / 0.2) 0%, hsl(350 67% 45% / 0.18) 100%);
   }
 }

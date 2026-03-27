@@ -253,7 +253,7 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
         <div className="flex items-center gap-2 px-2 py-1">
           <LogoIcon size="sm" />
           <div className="flex flex-col">
-            <span className="text-sm font-medium">Pinaypal</span>
+            <span className="text-sm font-medium">Rhubaia</span>
             <span className="text-xs text-muted-foreground">Admin Panel</span>
           </div>
         </div>

@@ -206,6 +206,7 @@ class ApiClient {
       '/forgot-password',
       '/reset-password',
       '/change-password',
+      '/users',
       '/permissions',
       '/roles',
       '/admins',

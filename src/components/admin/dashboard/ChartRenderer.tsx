@@ -11,7 +11,7 @@ interface ChartData {
 
 interface ChartRendererProps {
   data: ChartData[];
-  chartType: 'bar' | 'pie' | 'line';
+  chartType: 'bar' | 'line';
   dataKeys: string[];
   height?: number;
   isMultiYearMonthly?: boolean;

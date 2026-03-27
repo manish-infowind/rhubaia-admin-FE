@@ -208,7 +208,7 @@ export default function FlaggedUsers() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/admin/users/${user.id}`)}
+                          onClick={() => navigate(`/admin/users/${(user as any).uuid || user.id}`)}
                           className="flex-1"
                         >
                           <User className="h-4 w-4 mr-2" />

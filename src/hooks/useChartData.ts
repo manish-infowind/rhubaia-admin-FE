@@ -3,6 +3,31 @@ import { format } from "date-fns";
 import { DashboardService, AnalyticsData, UserGrowthResponse, ActiveUsersResponse, ConversionAnalyticsResponse, ConversionDataPoint, RevenueAnalyticsResponse, ConversationAnalyticsResponse, AppStoreInstallStatsResponse, SafetyMetricsResponse, FeedResponseTimeResponse } from "@/api/services/dashboardService";
 import { ChartConfig } from "@/components/admin/dashboard/ChartFilters";
 
+const extractArrayFromPayload = <T = any>(
+  payload: any,
+  preferredKeys: string[]
+): T[] => {
+  if (Array.isArray(payload)) return payload as T[];
+  if (!payload || typeof payload !== "object") return [];
+
+  for (const key of preferredKeys) {
+    if (Array.isArray(payload[key])) {
+      return payload[key] as T[];
+    }
+  }
+
+  // Some endpoints may wrap the actual payload in a nested `data` object.
+  if (payload.data && typeof payload.data === "object") {
+    for (const key of preferredKeys) {
+      if (Array.isArray(payload.data[key])) {
+        return payload.data[key] as T[];
+      }
+    }
+  }
+
+  return [];
+};
+
 // Generate mock analytics data based on date range
 const generateMockAnalyticsData = (
   startDate: Date,
@@ -171,9 +196,10 @@ const loadUserGrowthData = async (chartConfig: ChartConfig): Promise<AnalyticsDa
     const response = await DashboardService.getUserGrowth(chartConfig.timeRange, options);
     
     if (response.success && response.data) {
+      const userGrowth = extractArrayFromPayload(response.data, ["userGrowth"]);
       // Transform UserGrowthResponse to AnalyticsData format
       return {
-        userGrowth: response.data.userGrowth,
+        userGrowth,
         activeUsers: [], // Will be loaded separately
         conversions: [], // Will be loaded separately
         performance: {
@@ -281,10 +307,11 @@ const loadActiveUsersData = async (chartConfig: ChartConfig): Promise<AnalyticsD
     const response = await DashboardService.getActiveUsers(chartConfig.timeRange, options);
     
     if (response.success && response.data) {
+      const activeUsers = extractArrayFromPayload(response.data, ["activeUsers"]);
       // Transform ActiveUsersResponse to AnalyticsData format
       return {
         userGrowth: [], // Will be loaded separately
-        activeUsers: response.data.activeUsers,
+        activeUsers,
         conversions: [], // Will be loaded separately
         performance: {
           averageResponseTime: 0,
@@ -391,9 +418,10 @@ const loadRevenueData = async (chartConfig: ChartConfig): Promise<AnalyticsData 
     const response = await DashboardService.getRevenue(chartConfig.timeRange, options);
     
     if (response.success && response.data) {
+      const revenueAnalytics = extractArrayFromPayload(response.data, ["revenueAnalytics"]);
       // Transform RevenueAnalyticsResponse to AnalyticsData format
       // Sort by date to ensure chronological order
-      const sortedRevenue = [...response.data.revenueAnalytics].sort((a, b) => 
+      const sortedRevenue = [...revenueAnalytics].sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
@@ -520,9 +548,10 @@ const loadConversionsData = async (chartConfig: ChartConfig): Promise<AnalyticsD
     );
     
     if (response.success && response.data) {
+      const conversionPoints = extractArrayFromPayload(response.data, ["conversions"]);
       // Transform ConversionAnalyticsResponse to AnalyticsData format
       // Sort by date to ensure chronological order (as per API documentation best practices)
-      const sortedConversions = [...response.data.conversions].sort((a, b) => 
+      const sortedConversions = [...conversionPoints].sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
@@ -639,9 +668,10 @@ const loadConversationAnalyticsData = async (chartConfig: ChartConfig): Promise<
     const response = await DashboardService.getConversationAnalytics(chartConfig.timeRange, options);
     
     if (response.success && response.data) {
+      const conversationAnalytics = extractArrayFromPayload(response.data, ["conversationAnalytics"]);
       // Transform ConversationAnalyticsResponse to AnalyticsData format
       // Sort by date to ensure chronological order
-      const sortedConversationAnalytics = [...response.data.conversationAnalytics].sort((a, b) => 
+      const sortedConversationAnalytics = [...conversationAnalytics].sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
@@ -753,22 +783,7 @@ const loadAppStoreInstallStatsData = async (chartConfig: ChartConfig): Promise<A
     if (response.success && response.data) {
       // Handle different response structures
       // The API returns: {installStats: Array, metadata: {}}
-      let appStoreInstallStatsArray: any[];
-      
-      if (Array.isArray(response.data)) {
-        // Response is an array directly
-        appStoreInstallStatsArray = response.data;
-      } else if (response.data.installStats && Array.isArray(response.data.installStats)) {
-        // Response has installStats property (actual API structure)
-        appStoreInstallStatsArray = response.data.installStats;
-      } else if (response.data.appStoreInstallStats && Array.isArray(response.data.appStoreInstallStats)) {
-        // Fallback: Response has appStoreInstallStats property
-        appStoreInstallStatsArray = response.data.appStoreInstallStats;
-      } else {
-        // Fallback: try to extract data from response.data
-        console.warn('Unexpected response structure for app store install stats:', response.data);
-        appStoreInstallStatsArray = [];
-      }
+      const appStoreInstallStatsArray = extractArrayFromPayload(response.data, ["installStats", "appStoreInstallStats"]);
       
       // Filter out metadata object if present (metadata is not part of the data array)
       const dataArray = appStoreInstallStatsArray.filter(item => item && item.date && typeof item.signupPercentage === 'number');
@@ -904,9 +919,10 @@ const loadSafetyMetricsData = async (chartConfig: ChartConfig): Promise<Analytic
     const response = await DashboardService.getSafetyMetrics(chartConfig.timeRange, options);
     
     if (response.success && response.data) {
+      const safetyMetrics = extractArrayFromPayload(response.data, ["safetyMetrics"]);
       // Transform SafetyMetricsResponse to AnalyticsData format
       // Sort by date to ensure chronological order
-      const sortedSafetyMetrics = [...response.data.safetyMetrics].sort((a, b) => {
+      const sortedSafetyMetrics = [...safetyMetrics].sort((a, b) => {
         // Parse dates using UTC to avoid timezone issues
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);

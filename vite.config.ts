@@ -24,14 +24,14 @@ export default defineConfig(({ mode }) => ({
         "decryption-worker.js",
       ],
       manifest: {
-        name: "Pinaypal - Admin Panel",
-        short_name: "Pinaypal Admin",
-        description: "Pinaypal - Admin Panel",
+        name: "Rhubaia - Admin Panel",
+        short_name: "Rhubaia Admin",
+        description: "Rhubaia - Admin Panel",
         start_url: "/",
         scope: "/",
         display: "standalone",
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
+        theme_color: "#9B1C31",
+        background_color: "#9B1C31",
         icons: [
           {
             src: "/logo.svg",

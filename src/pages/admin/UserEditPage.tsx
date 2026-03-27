@@ -22,7 +22,7 @@ const UserEditPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
-    const userId = id ? parseInt(id, 10) : 0;
+    const userId = id || '';
 
     const { useUserDetails, updateUser, isUpdating } = useUserManagement();
     const { data: userResponse, isLoading: isLoadingUser } = useUserDetails(userId);
@@ -70,7 +70,7 @@ const UserEditPage = () => {
             });
 
             updateUser(
-                { id: user.id, data: cleanedData },
+                { id: userId, data: cleanedData },
                 {
                     onSuccess: (response) => {
                         if (response?.success) {

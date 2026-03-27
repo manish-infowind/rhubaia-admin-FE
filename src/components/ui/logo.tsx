@@ -31,7 +31,7 @@ export const Logo: React.FC<LogoProps> = ({
       <div className={`${sizeClasses[size]} relative`}>
         <img 
           src="/logo.svg" 
-          alt="Pinaypal Logo" 
+          alt="Rhubaia Logo" 
           className="w-full h-full object-contain"
         />
       </div>
@@ -40,7 +40,7 @@ export const Logo: React.FC<LogoProps> = ({
       {showText && (
         <div className="flex flex-col">
           <span className={`font-bold bg-gradient-to-r from-brand-green via-brand-teal to-brand-blue bg-clip-text text-transparent ${textSizes[size]}`}>
-            PINAYPAL
+            RHUBAIA
           </span>
         </div>
       )}
