@@ -145,39 +145,8 @@ export const API_CONFIG = {
       CHANGE_PASSWORD: '/admin-management/:id/password',
       DETAILS: '/admin-management/:id',
     },
-    CAMPAIGNS: {
-      LIST: '/campaigns',
-      STATS: '/campaigns/stats',
-      CREATE: '/campaigns',
-      UPDATE: '/campaigns/:id',
-      DELETE: '/campaigns/:id',
-      DETAILS: '/campaigns/:id',
-      RUN: '/campaigns/:id/run',
-      CANCEL: '/campaigns/:id/cancel',
-      STATUS: '/campaigns/:id/status',
-      SCHEDULER_STATUS: '/campaigns/scheduler/status',
-      SCHEDULER_REFRESH: '/campaigns/scheduler/refresh',
-      SCHEDULER_CHECK: '/campaigns/scheduler/check',
-      // Email tracking endpoints
-      FAILED_EMAILS: '/campaigns/:id/failed-emails',
-      RETRY_FAILED: '/campaigns/:id/retry-failed',
-      DETAILED_STATS: '/campaigns/:id/detailed-stats',
-      RETRY_TRIGGER: '/campaigns/retry/trigger',
-      RETRY_STATS: '/campaigns/retry/stats',
-    },
-    ACTIVITY_LOGS: {
-      LIST: '/activity-logs',
-      USERS: '/activity-logs/users',
-    },
-    TECH_HEALTH: {
-      FEED_RESPONSE_TIME: '/tech-health/feed-response-time',
-      CRASH_FREE_USERS: '/tech-health/crash-free-users',
-    },
   },
 } as const;
-
-// PM2 Dashboard URL (default: PM2+ Monit; override in .env as VITE_PM2_DASHBOARD_URL)
-export const PM2_DASHBOARD_URL = import.meta.env.VITE_PM2_DASHBOARD_URL || 'https://app.pm2.io/';
 
 // HTTP Status Codes
 export const HTTP_STATUS = {

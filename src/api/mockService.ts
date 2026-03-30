@@ -5,8 +5,6 @@ import {
   mockAdmins,
   mockProducts,
   mockEnquiries,
-  mockCampaigns,
-  mockCampaignStats,
   mockAboutUs,
   mockSiteSettings,
   mockDashboardData,
@@ -389,103 +387,6 @@ export const getMockResponse = async <T>(
         success: true,
         message: 'Reply sent successfully',
       };
-    }
-  }
-
-  // Campaigns endpoints
-  if (normalizedEndpoint === API_CONFIG.ENDPOINTS.CAMPAIGNS.LIST) {
-    if (method === 'GET') {
-      let filteredCampaigns = [...mockCampaigns];
-      
-      if (finalParams?.search) {
-        filteredCampaigns = filteredCampaigns.filter(c =>
-          c.name.toLowerCase().includes(finalParams.search.toLowerCase()) ||
-          c.subject.toLowerCase().includes(finalParams.search.toLowerCase())
-        );
-      }
-      
-      if (finalParams?.status) {
-        filteredCampaigns = filteredCampaigns.filter(c => c.status === finalParams.status);
-      }
-      
-      const result = paginate(filteredCampaigns, finalParams?.page || 1, finalParams?.limit || 10);
-      return {
-        success: true,
-        data: {
-          campaigns: result.data,
-          total: result.pagination.total,
-          page: result.pagination.page,
-          limit: result.pagination.limit,
-          totalPages: result.pagination.totalPages,
-          hasNextPage: result.pagination.hasNextPage,
-          hasPrevPage: result.pagination.hasPrevPage,
-        } as any,
-      };
-    }
-    if (method === 'POST') {
-      const newCampaign = {
-        _id: generateId(),
-        ...body,
-        status: 'draft',
-        totalRecipients: 0,
-        sentCount: 0,
-        failedCount: 0,
-        openedCount: 0,
-        clickedCount: 0,
-        recipientEmails: [],
-        sentEmails: [],
-        failedEmails: [],
-        createdByEmail: 'admin@gmail.com',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      mockCampaigns.push(newCampaign);
-      return {
-        success: true,
-        data: newCampaign as any,
-        message: 'Campaign created successfully',
-      };
-    }
-  }
-
-  if (normalizedEndpoint === API_CONFIG.ENDPOINTS.CAMPAIGNS.STATS) {
-    return {
-      success: true,
-      data: mockCampaignStats as any,
-    };
-  }
-
-  if (normalizedEndpoint.match(/^\/campaigns\/[^/]+$/)) {
-    const id = normalizedEndpoint.split('/')[2];
-    if (method === 'GET') {
-      const campaign = mockCampaigns.find(c => c._id === id);
-      if (campaign) {
-        return {
-          success: true,
-          data: campaign as any,
-        };
-      }
-    }
-    if (method === 'PUT' || method === 'PATCH') {
-      const index = mockCampaigns.findIndex(c => c._id === id);
-      if (index !== -1) {
-        mockCampaigns[index] = { ...mockCampaigns[index], ...body, updatedAt: new Date().toISOString() };
-        return {
-          success: true,
-          data: mockCampaigns[index] as any,
-          message: 'Campaign updated successfully',
-        };
-      }
-    }
-    if (method === 'DELETE') {
-      const index = mockCampaigns.findIndex(c => c._id === id);
-      if (index !== -1) {
-        mockCampaigns.splice(index, 1);
-        return {
-          success: true,
-          message: 'Campaign deleted successfully',
-        };
-      }
     }
   }
 

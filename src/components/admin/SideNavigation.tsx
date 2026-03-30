@@ -8,8 +8,6 @@ import {
   UserCog,
   Key,
   UserCheck,
-  History,
-  Activity,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +19,6 @@ import {
   canManageAdminUsers,
   canManageRoles,
   canManagePermissions,
-  canAccessActivityLogs
 } from "@/lib/permissions";
 import React, { useState, useEffect } from "react";
 
@@ -36,16 +33,6 @@ const navigation = [
     name: "System Users",
     href: "/admin/users",
     icon: UserCheck,
-  },
-  {
-    name: "Activity Logs",
-    href: "/admin/activity-logs",
-    icon: History,
-  },
-  {
-    name: "Health & Monitoring",
-    href: "/admin/tech-health",
-    icon: Activity,
   },
 ];
 
@@ -63,9 +50,6 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
   // Check if user has permission to access admin management
   const hasAdminAccess = canAccessAdminManagement(loginState as any);
   
-  // Check if user has permission to access activity logs
-  const hasActivityLogsAccess = canAccessActivityLogs(loginState as any);
-
   // Admin Management sub-items with permission checks
   const adminManagementItems = [
     {
@@ -116,15 +100,7 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
       <ScrollArea className="flex-1">
         <div className="px-6 space-y-1 py-2">
           <div className="space-y-0.5">
-            {navigation
-              .filter((item) => {
-                // Filter out Activity Logs if user doesn't have permission
-                if (item.href === "/admin/activity-logs") {
-                  return hasActivityLogsAccess;
-                }
-                return true;
-              })
-              .map((item) => {
+            {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <motion.div

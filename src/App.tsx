@@ -17,12 +17,9 @@ import Settings from "./pages/admin/Settings";
 import AdminManagement from "./pages/admin/AdminManagement";
 import RolesManagement from "./pages/admin/RolesManagement";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
-// import Campaigns from "./pages/admin/Campaigns";
 import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
-import ActivityLogs from "./pages/admin/ActivityLogs";
-import TechHealthMonitoring from "./pages/admin/TechHealthMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -163,26 +160,6 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <UserEditPage />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/activity-logs"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <ActivityLogs />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/tech-health"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <TechHealthMonitoring />
                 </AdminLayout>
               </ProtectedRoute>
             }

@@ -37,9 +37,6 @@ export { AdminManagementService } from './adminManagementService';
 // User Management Services
 export { UserManagementService } from './userManagementService';
 
-// Campaign Services
-export { CampaignService } from './campaignService';
-
 // Content Services
 export { ContentService } from './contentService';
 

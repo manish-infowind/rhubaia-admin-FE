@@ -15,9 +15,6 @@ export const PERMISSIONS = {
   // Permission Management Permissions
   PERMISSION_MANAGEMENT: 'permission_management',
   
-  // Activity Logs Permission
-  ADMIN_RECENT_ACTIVITY: 'admin_recent_activity',
-  
   // All Allowed (Super Admin)
   ALL_ALLOWED: 'all_allowed',
 } as const;
@@ -286,18 +283,3 @@ export const hasAllPermissions = (userPermissions: string[] | undefined, permiss
   return permissions.every(permission => userPermissions.includes(permission));
 };
 
-/**
- * Check if user can access activity logs
- * Super admins automatically have access
- */
-export const canAccessActivityLogs = (user: User | null | undefined): boolean => {
-  // Super admins have access to everything
-  if (hasSuperAdminRole(user)) {
-    return true;
-  }
-  
-  return hasAnyPermissionName(user, [
-    PERMISSIONS.ALL_ALLOWED,
-    PERMISSIONS.ADMIN_RECENT_ACTIVITY,
-  ]);
-};
