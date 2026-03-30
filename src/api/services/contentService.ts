@@ -2,8 +2,7 @@ import { apiClient } from '../client';
 import { API_CONFIG } from '../config';
 import { 
   PageContent, 
-  UpdatePageRequest, 
-  SiteSettings, 
+  UpdatePageRequest,
   ApiResponse 
 } from '../types';
 
@@ -72,31 +71,6 @@ export class ContentService {
     try {
       const endpoint = API_CONFIG.ENDPOINTS.CONTENT.UPDATE_PAGE.replace(':id', id);
       const response = await apiClient.delete<void>(endpoint);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Get site settings
-  static async getSiteSettings(): Promise<ApiResponse<SiteSettings>> {
-    try {
-      const response = await apiClient.get<SiteSettings>(
-        API_CONFIG.ENDPOINTS.CONTENT.SETTINGS
-      );
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  // Update site settings
-  static async updateSiteSettings(settings: Partial<SiteSettings>): Promise<ApiResponse<SiteSettings>> {
-    try {
-      const response = await apiClient.put<SiteSettings>(
-        API_CONFIG.ENDPOINTS.CONTENT.SETTINGS,
-        settings
-      );
       return response;
     } catch (error) {
       throw error;

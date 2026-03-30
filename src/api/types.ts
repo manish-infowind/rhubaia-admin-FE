@@ -571,32 +571,6 @@ export interface BusinessAddress {
   pinCode: string;
 }
 
-// Settings Types
-export interface SiteSettings {
-  _id?: string;
-  key?: string;
-  siteName: string;
-  siteUrl: string;
-  siteDescription?: string;
-  businessEmail: string;
-  adminEmail: string;
-  timezone?: string;
-  contactNumber: string;
-  businessAddress: BusinessAddress;
-  businessHours?: string;
-  socialMedia: {
-    facebook?: string;
-    twitter?: string;
-    linkedin?: string;
-    instagram?: string;
-  };
-  logoUrl?: string;
-  faviconUrl?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 // Dashboard Stats Types
 export interface DashboardStats {
   totalProducts: number;
@@ -637,6 +611,114 @@ export interface QueryParams {
   hasReplies?: boolean;
   hasAdminNotes?: boolean;
   [key: string]: any;
+}
+
+// AI Usage Types
+export interface AiUsageFilterState {
+  operation?: string;
+  success?: boolean | null;
+  userId?: string;
+  from?: string;
+  to?: string;
+  days?: number;
+  page: number;
+  limit: number;
+}
+
+export interface AiUsageOperationSummary {
+  operation: string;
+  label: string;
+  total_runs: number;
+  successful_runs: number;
+  failed_runs: number;
+  total_tokens: number;
+  total_cost_usd: number;
+  last_used_at: string | null;
+}
+
+export interface AiUsageOperationsTotals {
+  total_runs: number;
+  successful_runs: number;
+  failed_runs: number;
+  total_tokens: number;
+  total_cost_usd: number;
+  total_operations: number;
+}
+
+export interface AiUsageOperationsResponse {
+  items: AiUsageOperationSummary[];
+  totals: AiUsageOperationsTotals;
+}
+
+export interface AiUsageHistoryItem {
+  id: number;
+  uuid: string;
+  operation: string;
+  operation_label: string;
+  user: {
+    uuid: string | null;
+    email: string | null;
+    full_name: string | null;
+  } | null;
+  model: string | null;
+  output_format: string | null;
+  quality: string | null;
+  size: string | null;
+  tokens: {
+    input: number;
+    output: number;
+    total: number;
+  };
+  estimated_cost_usd: number;
+  success: boolean;
+  error_message: string | null;
+  result_url: string | null;
+  usage_details: unknown;
+  created_at: string;
+}
+
+export interface AiUsageHistoryFilters {
+  operation: string | null;
+  success: boolean | null;
+  user_id: string | null;
+  from: string | null;
+  to: string | null;
+}
+
+export interface AiUsageHistoryPagination {
+  page: number;
+  limit: number;
+  offset: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface AiUsageHistoryResponse {
+  items: AiUsageHistoryItem[];
+  filters: AiUsageHistoryFilters;
+  pagination: AiUsageHistoryPagination;
+}
+
+export interface AiUsageGraphPoint {
+  day: string;
+  total_runs: number;
+  successful_runs: number;
+  failed_runs: number;
+  total_tokens: number;
+  total_cost_usd: number;
+}
+
+export interface AiUsageGraphResponse {
+  filters: {
+    operation: string | null;
+    success: boolean | null;
+    user_id: string | null;
+    from: string | null;
+    to: string | null;
+    days: number;
+  };
+  summary: AiUsageOperationsTotals;
+  points: AiUsageGraphPoint[];
 }
 
 export interface EnquiryStats {
@@ -902,7 +984,6 @@ export const FEATURES = {
   ADMIN_ROLE: 'admin-role',
   ADMIN_PERMISSION: 'admin-permission',
   ADMIN_PROFILE: 'admin-profile',
-  ADMIN_SETTINGS: 'admin-settings',
   DASHBOARD: 'dashboard',
   DASHBOARD_ANALYTICS: 'dashboard-analytics',
 } as const;

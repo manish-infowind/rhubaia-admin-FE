@@ -14,16 +14,10 @@ export type {
   VerifyOtpRequest,
   ResetPasswordRequest,
   ResetPasswordConfirmRequest,
-  TwoFactorSetupRequest,
-  TwoFactorEnableRequest,
-  TwoFactorDisableRequest,
   UserActivity,
   UpdatePreferencesRequest,
   ApiResponse as ProfileApiResponse,
 } from './profileService';
-
-// Site Settings Services
-export { SiteSettingsService } from './siteSettingsService';
 
 // Password Services
 export { PasswordService } from './passwordService';
@@ -39,6 +33,9 @@ export { UserManagementService } from './userManagementService';
 
 // Content Services
 export { ContentService } from './contentService';
+
+// AI Usage Services
+export { AiUsageService } from './aiUsageService';
 
 // Dashboard Services
 export { DashboardService } from './dashboardService';

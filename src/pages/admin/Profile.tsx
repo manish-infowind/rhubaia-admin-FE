@@ -15,8 +15,6 @@ import {
   Phone,
   MapPin,
   Calendar,
-  Shield,
-  ShieldCheck,
   Key,
   Loader2,
   Camera,
@@ -27,7 +25,6 @@ import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { useProfile } from "@/api/hooks/useProfile";
 import PasswordChangeModal from "@/components/admin/PasswordChangeModal";
-import { TwoFactorModal } from "@/components/admin/TwoFactorModal";
 
 // Utility function to format relative time
 const formatRelativeTime = (date: string | Date): string => {
@@ -62,21 +59,14 @@ export default function Profile() {
     error,
     saving,
     uploadingAvatar,
-    settingUp2FA,
-    enabling2FA,
-    disabling2FA,
     updateProfile,
     uploadAvatar,
-    setup2FA,
-    enable2FA,
-    disable2FA,
     loadProfile,
     resetError,
   } = useProfile();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [show2FAModal, setShow2FAModal] = useState(false);
   const [localProfile, setLocalProfile] = useState({
     firstName: "",
     lastName: "",
@@ -631,38 +621,6 @@ export default function Profile() {
                   Change Password
                 </Button>
               </div>
-              <div className="space-y-4">
-                <h4 className="font-medium">Two-Factor Authentication</h4>
-                <div className="space-y-2">
-                  {profile?.twoFactorEnabled ? (
-                    <>
-                      <p className="text-sm text-green-600 flex items-center">
-                        <ShieldCheck className="h-4 w-4 mr-1" />
-                        2FA is enabled
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Your account is protected with two-factor authentication
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        Add an extra layer of security to your account
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        2FA is currently disabled
-                      </p>
-                    </>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShow2FAModal(true)}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  {profile?.twoFactorEnabled ? 'Manage 2FA' : 'Enable 2FA'}
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -674,19 +632,6 @@ export default function Profile() {
         isOpen={showPasswordModal}
         onClose={closeForgotPasswordHandler}
         clearType={clearModalType}
-      />
-
-      {/* Two-Factor Authentication Modal */}
-      <TwoFactorModal
-        isOpen={show2FAModal}
-        onClose={() => setShow2FAModal(false)}
-        onSetup2FA={setup2FA}
-        onEnable2FA={enable2FA}
-        onDisable2FA={disable2FA}
-        settingUp2FA={settingUp2FA}
-        enabling2FA={enabling2FA}
-        disabling2FA={disabling2FA}
-        twoFactorEnabled={profile?.twoFactorEnabled || false}
       />
     </div>
   );

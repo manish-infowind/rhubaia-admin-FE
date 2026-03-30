@@ -13,7 +13,6 @@ import { AuthService } from "@/api/services/authService";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/admin/Dashboard";
 import Profile from "./pages/admin/Profile";
-import Settings from "./pages/admin/Settings";
 import AdminManagement from "./pages/admin/AdminManagement";
 import RolesManagement from "./pages/admin/RolesManagement";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
@@ -80,16 +79,6 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <Profile />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <Settings />
                 </AdminLayout>
               </ProtectedRoute>
             }

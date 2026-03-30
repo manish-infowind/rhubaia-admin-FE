@@ -3,7 +3,6 @@ import {
   AdminUser,
   Enquiry,
   AboutUs,
-  SiteSettings,
   DashboardStats,
   AdminStats,
   EnquiryStats,
@@ -230,39 +229,6 @@ export const mockAboutUs: AboutUs = {
       order: 2,
     },
   ],
-};
-
-// Mock Site Settings
-export const mockSiteSettings: SiteSettings = {
-  _id: '1',
-  key: 'main',
-  siteName: 'Rhubaia',
-  siteUrl: 'https://rhubaia.com',
-  siteDescription: 'Leading payment platform',
-  businessEmail: 'info@rhubaia.com',
-  adminEmail: 'admin@gmail.com',
-  timezone: 'America/New_York',
-  contactNumber: '+1234567890',
-  businessAddress: {
-    line1: '123 Main Street',
-    line2: 'Suite 100',
-    city: 'New York',
-    state: 'NY',
-    country: 'USA',
-    pinCode: '10001',
-  },
-  businessHours: 'Monday - Friday: 9 AM - 5 PM',
-  socialMedia: {
-    facebook: 'https://facebook.com/rhubaia',
-    twitter: 'https://twitter.com/rhubaia',
-    linkedin: 'https://linkedin.com/company/rhubaia',
-    instagram: 'https://instagram.com/rhubaia',
-  },
-  logoUrl: '/logo.svg',
-  faviconUrl: '/favicon.ico',
-  isActive: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
 };
 
 // Mock Dashboard Data (matching DashboardData structure)

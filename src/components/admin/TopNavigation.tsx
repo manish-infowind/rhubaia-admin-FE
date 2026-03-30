@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./ThemeToggle";
 import { Badge } from "@/components/ui/badge";
-import { Settings, LogOut, User, Menu, Loader2, Shield } from "lucide-react";
+import { LogOut, User, Menu, Loader2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { logout } from "../../redux/features/authSlice"
@@ -125,10 +125,6 @@ const TopNavigation = ({ onToggleSidebar }: TopNavigationProps) => {
             <DropdownMenuItem onClick={() => navigate("/admin/profile")}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/admin/settings")}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logoutHandler}>

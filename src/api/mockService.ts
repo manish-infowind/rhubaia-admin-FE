@@ -6,7 +6,6 @@ import {
   mockProducts,
   mockEnquiries,
   mockAboutUs,
-  mockSiteSettings,
   mockDashboardData,
   mockAdminStats,
   mockEnquiryStats,
@@ -403,23 +402,6 @@ export const getMockResponse = async <T>(
         success: true,
         data: { ...mockAboutUs, ...body } as any,
         message: 'About Us updated successfully',
-      };
-    }
-  }
-
-  // Site Settings endpoints
-  if (normalizedEndpoint === API_CONFIG.ENDPOINTS.SITE_SETTINGS.GET) {
-    if (method === 'GET') {
-      return {
-        success: true,
-        data: mockSiteSettings as any,
-      };
-    }
-    if (method === 'PUT' || method === 'PATCH') {
-      return {
-        success: true,
-        data: { ...mockSiteSettings, ...body, updatedAt: new Date().toISOString() } as any,
-        message: 'Site settings updated successfully',
       };
     }
   }

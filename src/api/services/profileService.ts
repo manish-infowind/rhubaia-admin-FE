@@ -22,7 +22,6 @@ export interface UserProfile {
     timeAgo: string;
   };
   isActive: boolean;
-  twoFactorEnabled: boolean;
   permissions: string[];
   preferences?: {
     theme?: string;
@@ -62,18 +61,6 @@ export interface ResetPasswordConfirmRequest {
   token: string;
   password: string;
   confirmPassword: string;
-}
-
-export interface TwoFactorSetupRequest {
-  // No additional data needed for setup
-}
-
-export interface TwoFactorEnableRequest {
-  otp: string;
-}
-
-export interface TwoFactorDisableRequest {
-  otp: string;
 }
 
 export interface Verify2FARequest {
@@ -419,57 +406,6 @@ class ProfileService {
         success: false,
         message: 'Invalid response format'
       };
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Setup 2FA (send OTP)
-   */
-  async setup2FA(): Promise<ApiResponse<void>> {
-    try {
-      const userId = this.getUserId();
-      const url = userId 
-        ? `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_SETUP}?userId=${userId}`
-        : `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_SETUP}`;
-      
-      const response = await apiClient.post<void>(url);
-      return response;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Enable 2FA
-   */
-  async enable2FA(otpData: TwoFactorEnableRequest): Promise<ApiResponse<void>> {
-    try {
-      const userId = this.getUserId();
-      const url = userId 
-        ? `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_ENABLE}?userId=${userId}`
-        : `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_ENABLE}`;
-      
-      const response = await apiClient.post<void>(url, otpData);
-      return response;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Disable 2FA
-   */
-  async disable2FA(otpData: TwoFactorDisableRequest): Promise<ApiResponse<void>> {
-    try {
-      const userId = this.getUserId();
-      const url = userId 
-        ? `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_DISABLE}?userId=${userId}`
-        : `${this.baseUrl}${API_CONFIG.ENDPOINTS.ADMIN_PROFILE.PROFILE_2FA_DISABLE}`;
-      
-      const response = await apiClient.post<void>(url, otpData);
-      return response;
     } catch (error) {
       throw this.handleError(error);
     }

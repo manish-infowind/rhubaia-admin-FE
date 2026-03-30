@@ -65,9 +65,6 @@ export const API_CONFIG = {
       PROFILE_PASSWORD_RESET: '/admin-profile/password/reset',
       PROFILE_PREFERENCES: '/admin-profile/preferences',
       PROFILE_ACTIVITY: '/admin-profile/activity',
-      PROFILE_2FA_SETUP: '/admin-profile/2fa/setup',
-      PROFILE_2FA_ENABLE: '/admin-profile/2fa/enable',
-      PROFILE_2FA_DISABLE: '/admin-profile/2fa/disable',
     },
     PRODUCTS: {
       LIST: '/products',
@@ -79,7 +76,6 @@ export const API_CONFIG = {
     CONTENT: {
       PAGES: '/content/pages',
       UPDATE_PAGE: '/content/pages/:id',
-      SETTINGS: '/content/settings',
       ABOUT_US: '/about-us',
       ABOUT_US_SECTIONS: '/about-us/sections',
       ABOUT_US_TEAM_MEMBERS: '/about-us/team-members',
@@ -109,6 +105,11 @@ export const API_CONFIG = {
       ACTIVE_USERS_MAP: '/api/active-users-map',
       FEED_RESPONSE_TIME: '/dashboard/tech-health/api-response-metrics',
     },
+    AI_USAGE: {
+      OPERATIONS: '/ai-usage/operations',
+      HISTORY: '/ai-usage/history',
+      GRAPH: '/ai-usage/graph',
+    },
     ENQUIRIES: {
       LIST: '/enquiries',
       CREATE: '/enquiries',
@@ -129,11 +130,6 @@ export const API_CONFIG = {
       DELETE: '/faqs/:id',
       DETAILS: '/faqs/:id',
       STATUS: '/faqs/:id/status',
-    },
-    SITE_SETTINGS: {
-      INITIALIZE: '/site-settings/initialize',
-      GET: '/site-settings/main',
-      UPDATE: '/site-settings/main',
     },
     ADMIN_MANAGEMENT: {
       LIST: '/admin-management',
