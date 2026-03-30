@@ -17,30 +17,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "@/redux/features/authSlice";
 import { useProfile } from "@/api/hooks/useProfile";
-import { PasswordService } from "@/api/services/passwordService";
-import { LogoutApi } from "@/api/services/authApis/logoutApi";
-
-// Password validation functions
-const validatePassword = (password: string) => {
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-  const isLongEnough = password.length >= 8;
-  
-  return {
-    hasUpperCase,
-    hasLowerCase,
-    hasNumber,
-    hasSpecialChar,
-    isLongEnough,
-    isValid: hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar && isLongEnough
-  };
-};
-
-const validatePasswordMatch = (password: string, confirmPassword: string) => {
-  return password === confirmPassword && password.length > 0;
-};
+import { AuthService } from "@/api/services/authService";
+import { authStorage } from "@/lib/authStorage";
 
 interface PasswordChangeModalProps {
   isOpen: boolean;
@@ -89,7 +67,6 @@ export function PasswordChangeModal({
 
   // Flag to track if password was changed successfully
   const [passwordChanged, setPasswordChanged] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
 
   // Cleanup countdown on unmount
@@ -104,11 +81,7 @@ export function PasswordChangeModal({
 
   // Handle hard reload scenarios
   useEffect(() => {
-    const passwordChangedFlag = localStorage.getItem('passwordChanged');
-    if (passwordChangedFlag === 'true') {
-      // Clear the flag
-      localStorage.removeItem('passwordChanged');
-      // Logout immediately
+    if (authStorage.consumePasswordChangedFlag()) {
       logoutHandler();
     }
   }, []);
@@ -162,8 +135,7 @@ export function PasswordChangeModal({
       // Directly proceed to success step if successful (no OTP step)
       if (success) {
         setPasswordChanged(true);
-        // Store flag in localStorage for hard reload scenarios
-        localStorage.setItem('passwordChanged', 'true');
+        authStorage.markPasswordChanged();
         setStep('success');
         startCountdown();
       } else {
@@ -225,7 +197,6 @@ export function PasswordChangeModal({
     setOtpError(null);
     setCountdown(5);
     setPasswordChanged(false);
-    setVerifyingOtp(false);
 
     // Clear any pending countdown
     if (countdownRef.current) {
@@ -267,13 +238,10 @@ export function PasswordChangeModal({
   // Logout Handler
   const logoutHandler = async () => {
     try {
-      // Call logout API
-      await LogoutApi();
-    } catch (error) {
-      console.error("Logout error:", error);
+      await AuthService.logout();
+    } catch {
       // Continue with logout even if API call fails
     } finally {
-      // Clear Redux state and localStorage
       dispatch(logout());
       navigate('/', { replace: true });
       handleClose();
@@ -290,7 +258,7 @@ export function PasswordChangeModal({
   const SubHeading = (step?.toLowerCase() === 'otp' || type?.toLowerCase() === "forgotpassword")
     ? `Enter the 6-digit OTP sent to your email "${"admin@gmail.com"}" to complete the password change.`
     : step === 'password'
-      ? 'Enter your current password and choose a new one. You will receive an OTP to verify the change.'
+      ? 'Enter your current password and choose a new one.'
       : 'Password changed successfully! You will be redirected to login page.'
 
 
@@ -318,7 +286,7 @@ export function PasswordChangeModal({
                 clearType();
               }
               setPasswordChanged(true);
-              localStorage.setItem('passwordChanged', 'true');
+              authStorage.markPasswordChanged();
               setStep('success');
               startCountdown();
             }} className="space-y-4">
@@ -364,7 +332,7 @@ export function PasswordChangeModal({
                     clearType();
                   }
                   setPasswordChanged(true);
-                  localStorage.setItem('passwordChanged', 'true');
+                  authStorage.markPasswordChanged();
                   setStep('success');
                   startCountdown();
                 }}

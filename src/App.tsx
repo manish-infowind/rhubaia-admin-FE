@@ -20,6 +20,7 @@ import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
+import { AUTH_LOGOUT_EVENT } from "@/lib/authStorage";
 
 const queryClient = new QueryClient();
 
@@ -42,10 +43,10 @@ const AuthInitializer = () => {
       dispatch(logout());
     };
 
-    window.addEventListener('auth:logout', handleAuthLogout);
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
 
     return () => {
-      window.removeEventListener('auth:logout', handleAuthLogout);
+      window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
     };
   }, [dispatch]);
 

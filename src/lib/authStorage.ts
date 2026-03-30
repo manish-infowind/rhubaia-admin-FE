@@ -7,7 +7,10 @@ const STORAGE_KEYS = {
   user: 'user',
   sessionId: 'sessionId',
   isSuperAdmin: 'isSuperAdmin',
+  passwordChanged: 'passwordChanged',
 } as const;
+
+export const AUTH_LOGOUT_EVENT = 'auth:logout';
 
 type StoredUser = User | Record<string, unknown>;
 
@@ -89,6 +92,16 @@ export const authStorage = {
     } else {
       localStorage.removeItem(STORAGE_KEYS.isSuperAdmin);
     }
+  },
+
+  markPasswordChanged(): void {
+    localStorage.setItem(STORAGE_KEYS.passwordChanged, 'true');
+  },
+
+  consumePasswordChangedFlag(): boolean {
+    const wasChanged = localStorage.getItem(STORAGE_KEYS.passwordChanged) === 'true';
+    localStorage.removeItem(STORAGE_KEYS.passwordChanged);
+    return wasChanged;
   },
 
   clearAuth(): void {

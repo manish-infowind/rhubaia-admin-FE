@@ -18,7 +18,7 @@ import { motion } from "framer-motion";
 import { logout } from "../../redux/features/authSlice"
 import type { RootState } from "@/redux/store/store";
 import { getInitials } from "@/validations/validations";
-import { LogoutApi } from "@/api/services/authApis/logoutApi";
+import { AuthService } from "@/api/services/authService";
 
 interface TopNavigationProps {
   onToggleSidebar: () => void;
@@ -42,13 +42,10 @@ const TopNavigation = ({ onToggleSidebar }: TopNavigationProps) => {
   const logoutHandler = async () => {
     try {
       setLoading(true);
-      // Call logout API
-      await LogoutApi();
-    } catch (error) {
-      console.error("Logout error:", error);
+      await AuthService.logout();
+    } catch {
       // Continue with logout even if API call fails
     } finally {
-      // Clear Redux state and localStorage
       dispatch(logout());
       setLoading(false);
       navigate('/', { replace: true });

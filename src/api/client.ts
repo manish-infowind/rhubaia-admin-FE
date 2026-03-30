@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { API_CONFIG, HTTP_STATUS, API_ERROR_TYPES } from './config';
 import { ApiResponse, ApiError, ApiRequestOptions } from './types';
 import { getMockResponse } from './mockService';
-import { authStorage } from '@/lib/authStorage';
+import { AUTH_LOGOUT_EVENT, authStorage } from '@/lib/authStorage';
 
 class ApiClient {
   private baseURL: string;
@@ -64,7 +64,7 @@ class ApiClient {
                 this.clearAuthTokens();
                 // Dispatch custom event for components that need to handle logout
                 if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('auth:logout'));
+                  window.dispatchEvent(new CustomEvent(AUTH_LOGOUT_EVENT));
                 }
                 return Promise.reject(error);
               }
@@ -74,10 +74,10 @@ class ApiClient {
               this.clearAuthTokens();
               // Dispatch custom event for components that need to handle logout
               if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('auth:logout'));
+                  window.dispatchEvent(new CustomEvent(AUTH_LOGOUT_EVENT));
+                }
+                return Promise.reject(error);
               }
-              return Promise.reject(error);
-            }
           }
         }
         return Promise.reject(error);

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store/store';
-import { AuthService } from '@/api/services/authService';
+import { authStorage } from '@/lib/authStorage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +13,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loadingState } = useSelector((state: RootState) => state.auth);
   
   // Also check localStorage as fallback (in case Redux hasn't rehydrated yet)
-  const isAuthFromStorage = AuthService.isAuthenticated();
+  const isAuthFromStorage = Boolean(
+    authStorage.getAccessToken() && authStorage.getCurrentUser()
+  );
 
   // Show loading state while checking authentication
   if (loadingState) {

@@ -1,6 +1,6 @@
 import { apiClient } from '../client';
 import { API_CONFIG } from '../config';
-import { LoginRequest, LoginResponse, LoginResponse2FA, LoginResponseLegacy, Verify2FARequest, RefreshTokenResponse, User, ApiResponse } from '../types';
+import { LoginRequest, LoginResponse, LoginResponse2FA, RefreshTokenResponse, User, ApiResponse } from '../types';
 import { authStorage } from '@/lib/authStorage';
 
 export class AuthService {
@@ -265,16 +265,7 @@ export class AuthService {
         return { success: true, message: 'Logged out successfully' };
       }
 
-      // Call logout endpoint
-      const response = await apiClient.post<any>(
-        API_CONFIG.ENDPOINTS.AUTH.LOGOUT,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      );
+      const response = await apiClient.post<any>(API_CONFIG.ENDPOINTS.AUTH.LOGOUT, {});
 
       // Clear local storage regardless of API response
       this.clearLocalStorage();
