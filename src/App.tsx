@@ -21,12 +21,6 @@ import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
-import FaceVerifications from "./pages/admin/FaceVerifications";
-import PendingVerifications from "./pages/admin/PendingVerifications";
-import VerificationDetails from "./pages/admin/VerificationDetails";
-import FlaggedUsers from "./pages/admin/FlaggedUsers";
-import Report from "./pages/admin/Report";
-import ReportDetailsPage from "./pages/admin/ReportDetailsPage";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import TechHealthMonitoring from "./pages/admin/TechHealthMonitoring";
 
@@ -169,66 +163,6 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <UserEditPage />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/face-verifications"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <FaceVerifications />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/face-verifications/pending"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <PendingVerifications />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/face-verifications/:id"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <VerificationDetails />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/face-verifications/flagged"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <FlaggedUsers />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <Report />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/reports/:id"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <ReportDetailsPage />
                 </AdminLayout>
               </ProtectedRoute>
             }

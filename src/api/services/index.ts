@@ -55,10 +55,6 @@ export { FAQService } from './faqService';
 // Product Services
 export { ProductService } from './productService';
 
-// Report Services
-export { ReportService } from './reportService';
-export type * from './reportTypes';
-
 // Role Services
 export { RoleService } from './roleService';
 
@@ -73,6 +69,3 @@ export { PrivacyPolicyService } from './privacyPolicyService';
 
 // Index Page Services
 export { IndexPageService } from './indexPageService';
-
-// Face Verification Services
-export { FaceVerificationService } from './faceVerificationService';

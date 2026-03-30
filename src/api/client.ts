@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { API_CONFIG, HTTP_STATUS, API_ERROR_TYPES } from './config';
 import { ApiResponse, ApiError, ApiRequestOptions } from './types';
 import { getMockResponse } from './mockService';
+import { authStorage } from '@/lib/authStorage';
 
 class ApiClient {
   private baseURL: string;
@@ -27,15 +28,7 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        
-        // Debug: Log the request details
-        console.log('API Client: Request:', {
-          method: config.method?.toUpperCase(),
-          url: config.url,
-          headers: config.headers,
-          data: config.data
-        });
-        
+
         return config;
       },
       (error) => {
@@ -94,24 +87,22 @@ class ApiClient {
 
   // Get authentication token from localStorage
   private getAuthToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return authStorage.getAccessToken();
   }
 
   // Get refresh token from localStorage
   private getRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken');
+    return authStorage.getRefreshToken();
   }
 
   // Set authentication tokens
   private setAuthTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    authStorage.setTokens(accessToken, refreshToken);
   }
 
   // Clear authentication tokens
   private clearAuthTokens(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    authStorage.clearAuth();
   }
 
   // Handle token expired
@@ -361,11 +352,11 @@ class ApiClient {
         const { accessToken, user } = response.data;
         
         // Update access token
-        localStorage.setItem('accessToken', accessToken);
+        authStorage.setTokens(accessToken);
         
         // Update user data if provided
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
+          authStorage.setCurrentUser(user);
         }
         
         return true;

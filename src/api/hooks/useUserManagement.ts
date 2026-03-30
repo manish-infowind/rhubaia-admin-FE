@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { UserManagementService } from '../services/userManagementService';
 import { UserListParams, UpdateUserRequest, UserListItem, UserDetails } from '../types';
-import { faceVerificationKeys } from './useFaceVerification';
 
 export const userKeys = {
   all: ['users'] as const,
@@ -277,13 +276,6 @@ export const useUserManagement = (params?: UserListParams) => {
         // Invalidate and refetch users list and details
         queryClient.invalidateQueries({ queryKey: userKeys.lists() });
         queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
-        
-        // Invalidate face verification queries if isFaceVerified was updated
-        // This ensures the VerificationDetails page reflects the latest status
-        if (variables.data?.isFaceVerified !== undefined) {
-          queryClient.invalidateQueries({ queryKey: faceVerificationKeys.lists() });
-          queryClient.invalidateQueries({ queryKey: faceVerificationKeys.all });
-        }
       }
     },
     onError: (error: any) => {

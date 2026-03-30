@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "@/api/types";
+import { authStorage } from "@/lib/authStorage";
 
 interface AuthState {
     loginState: User | null;
@@ -45,13 +46,7 @@ const authSlice = createSlice({
             state.isLoggingIn = false;
             state.isVerifying2FA = false;
             
-            // Clear localStorage
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('tempToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('sessionId');
-            localStorage.removeItem('isSuperAdmin');
+            authStorage.clearAuth();
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.loadingState = action.payload;

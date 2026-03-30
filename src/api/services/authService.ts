@@ -1,6 +1,7 @@
 import { apiClient } from '../client';
 import { API_CONFIG } from '../config';
 import { LoginRequest, LoginResponse, LoginResponse2FA, LoginResponseLegacy, Verify2FARequest, RefreshTokenResponse, User, ApiResponse } from '../types';
+import { authStorage } from '@/lib/authStorage';
 
 export class AuthService {
   // Get device information
@@ -198,9 +199,7 @@ export class AuthService {
         
         // Handle new API response structure
         if (loginData.tokens) {
-          // Store tokens in localStorage
-          localStorage.setItem('accessToken', loginData.tokens.accessToken);
-          localStorage.setItem('refreshToken', loginData.tokens.refreshToken);
+          authStorage.setTokens(loginData.tokens.accessToken, loginData.tokens.refreshToken);
           
           // Store user data in a format compatible with existing code
           const userData: User = {
@@ -219,10 +218,8 @@ export class AuthService {
             isSuperAdmin: loginData.is_super_admin,
           };
           
-          // Store all user data synchronously before any navigation
-          localStorage.setItem('user', JSON.stringify(userData));
-          localStorage.setItem('sessionId', loginData.sessionId);
-          localStorage.setItem('isSuperAdmin', String(loginData.is_super_admin));
+          authStorage.setCurrentUser(userData);
+          authStorage.setSessionMetadata(loginData.sessionId, loginData.is_super_admin);
           
           // Force a small delay to ensure localStorage is written
           // This helps prevent race conditions with context updates
@@ -246,10 +243,8 @@ export class AuthService {
           // Fallback for legacy format without tokens structure
           const legacyData = loginData as any;
           if (legacyData.accessToken) {
-            // Store tokens in localStorage
-            localStorage.setItem('accessToken', legacyData.accessToken);
-            localStorage.setItem('refreshToken', legacyData.refreshToken);
-            localStorage.setItem('user', JSON.stringify(legacyData.user));
+            authStorage.setTokens(legacyData.accessToken, legacyData.refreshToken);
+            authStorage.setCurrentUser(legacyData.user);
           }
         }
       }
@@ -308,11 +303,11 @@ export class AuthService {
 
       if (response.success && response.data) {
         // Update access token in localStorage
-        localStorage.setItem('accessToken', response.data.accessToken);
+        authStorage.setTokens(response.data.accessToken);
         
         // Update user data if provided
         if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
+          authStorage.setCurrentUser(response.data.user);
         }
         
         return true;
@@ -326,44 +321,34 @@ export class AuthService {
 
   // Check if user is authenticated
   static isAuthenticated(): boolean {
-    const token = localStorage.getItem('accessToken');
-    const user = localStorage.getItem('user');
+    const token = authStorage.getAccessToken();
+    const user = authStorage.getCurrentUser();
     return !!(token && user);
   }
 
   // Get current user from localStorage
   static getCurrentUser(): User | null {
-    try {
-      const userStr = localStorage.getItem('user');
-      return userStr ? JSON.parse(userStr) : null;
-    } catch (error) {
-      return null;
-    }
+    return authStorage.getCurrentUser<User>();
   }
 
   // Get access token
   static getAccessToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return authStorage.getAccessToken();
   }
 
   // Get refresh token
   static getRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken');
+    return authStorage.getRefreshToken();
   }
 
   // Get temp token for 2FA
   static getTempToken(): string | null {
-    return localStorage.getItem('tempToken');
+    return authStorage.getTempToken();
   }
 
   // Clear all authentication data from localStorage
   static clearLocalStorage(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tempToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('sessionId');
-    localStorage.removeItem('isSuperAdmin');
+    authStorage.clearAuth();
   }
 
   // Check if token is expired (basic check)

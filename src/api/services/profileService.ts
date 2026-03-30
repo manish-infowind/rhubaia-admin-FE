@@ -1,5 +1,6 @@
 import { API_CONFIG } from '../config';
 import { apiClient } from '../client';
+import { authStorage } from '@/lib/authStorage';
 
 export interface UserProfile {
   id?: string;
@@ -115,19 +116,8 @@ class ProfileService {
    * Get user ID from localStorage
    */
   private getUserId(): string | null {
-    try {
-      const user = localStorage.getItem('user');
-      if (user) {
-        const userData = JSON.parse(user);
-        const userId = userData.id || userData.userId;
-        if (userId) {
-          return userId;
-        }
-      }
-      return null;
-    } catch (error) {
-      return null;
-    }
+    const userData = authStorage.getCurrentUser<{ id?: string; userId?: string }>();
+    return userData?.id || userData?.userId || null;
   }
 
   /**

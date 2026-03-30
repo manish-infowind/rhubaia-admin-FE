@@ -1,17 +1,15 @@
 import { API_CONFIG } from "@/api/config";
+import { authStorage } from "@/lib/authStorage";
 import axios from "axios";
 
 // Clear all authentication data from localStorage
 const clearLocalStorage = (): void => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tempToken');
-    localStorage.removeItem('user');
+    authStorage.clearAuth();
 };
 
 // Get access token
 const getAccessToken = (): string | null => {
-    return localStorage.getItem('accessToken');
+    return authStorage.getAccessToken();
 };
 
 export const LogoutApi = () => {

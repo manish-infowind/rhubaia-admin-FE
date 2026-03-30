@@ -112,25 +112,6 @@ export default function AdminManagement() {
   const { adminRoles, isLoading: isLoadingAdminRoles } = useAdminRoles(selectedAdmin?.id || '');
   const { adminPermissions, isLoading: isLoadingAdminPermissions } = useAdminPermissions(selectedAdmin?.id || '');
 
-  // Debug: Log when roles/permissions are fetched
-  useEffect(() => {
-    if (roles && roles.length > 0) {
-      console.log('Roles loaded:', roles);
-    }
-    if (rolesError) {
-      console.error('Error loading roles:', rolesError);
-    }
-  }, [roles, rolesError]);
-
-  useEffect(() => {
-    if (permissions && permissions.length > 0) {
-      console.log('Permissions loaded:', permissions);
-    }
-    if (permissionsError) {
-      console.error('Error loading permissions:', permissionsError);
-    }
-  }, [permissions, permissionsError]);
-
   // Password change form (for admin management, we don't need currentPassword)
   const [passwordData, setPasswordData] = useState<{
     newPassword: string;

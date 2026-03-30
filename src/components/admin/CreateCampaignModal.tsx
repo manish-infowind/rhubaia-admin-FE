@@ -54,9 +54,6 @@ export function CreateCampaignModal({
       scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
     };
 
-    // Debug: Log the data being sent
-    console.log('Creating campaign with data:', submitData);
-
     await onSubmit(submitData);
   };
 

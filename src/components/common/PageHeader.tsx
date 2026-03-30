@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, RefreshCw, UserCheck, UserPlus, UserX } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
 
 const PageHeader = (props) => {
     const {
@@ -10,9 +10,6 @@ const PageHeader = (props) => {
         fetchHandler,
         isLoading,
         openModal,
-        handleBack,
-        verification,
-        manualVerificationModal,
     } = props;
 
     return (
@@ -25,18 +22,6 @@ const PageHeader = (props) => {
                 <div className="flex items-center justify-between">
 
                     <div className="flex items-center gap-4">
-
-                        {/* Header Back Button */}
-                        {page?.toLowerCase() === "flaggedusers" && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleBack}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                        )}
-
                         {/* Heading & SubHeading */}
                         <div>
                             <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-green via-brand-teal to-brand-blue bg-clip-text text-transparent">
@@ -47,38 +32,6 @@ const PageHeader = (props) => {
                             </p>
                         </div>
                     </div>
-
-                    {/* Additionals Button for all diffrent Pages */}
-                    {(page?.toLowerCase() === "faceverify" || page?.toLowerCase() === "pendingverify") && (
-                        <Button variant="outline" onClick={fetchHandler} disabled={isLoading}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                            Refresh
-                        </Button>
-                    )}
-
-                    {page?.toLowerCase() === "flaggedusers" && (
-                        <div className="flex items-center gap-2">
-                            {!verification?.user?.isFaceVerified && (
-                                <Button
-                                    variant="default"
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                    onClick={manualVerificationModal}
-                                >
-                                    <UserCheck className="h-4 w-4 mr-2" />
-                                    Verify Manually
-                                </Button>
-                            )}
-                            {verification?.user?.isFaceVerified && (
-                                <Button
-                                    variant="destructive"
-                                    onClick={manualVerificationModal}
-                                >
-                                    <UserX className="h-4 w-4 mr-2" />
-                                    De-verify Manually
-                                </Button>
-                            )}
-                        </div>
-                    )}
 
                     {page?.toLowerCase() === "admin" && (
                         <Button className="bg-brand-green hover:bg-brand-green/90 text-white" onClick={openModal}>

@@ -79,19 +79,9 @@ export class CampaignService {
   // Create new campaign
   static async createCampaign(data: CreateCampaignRequest): Promise<ApiResponse<Campaign>> {
     try {
-      // Debug: Log the API call
-      console.log('CampaignService: Creating campaign with data:', data);
-      console.log('CampaignService: Endpoint:', API_CONFIG.ENDPOINTS.CAMPAIGNS.CREATE);
-      
       const response = await apiClient.post<Campaign>(API_CONFIG.ENDPOINTS.CAMPAIGNS.CREATE, data);
-      
-      // Debug: Log the response
-      console.log('CampaignService: Response:', response);
-      
       return response;
     } catch (error) {
-      // Debug: Log any errors
-      console.error('CampaignService: Error creating campaign:', error);
       throw error;
     }
   }

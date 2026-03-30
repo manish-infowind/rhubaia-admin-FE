@@ -8,8 +8,6 @@ import {
   UserCog,
   Key,
   UserCheck,
-  ScanFace,
-  ClipboardPenLine,
   History,
   Activity,
 } from "lucide-react";
@@ -38,16 +36,6 @@ const navigation = [
     name: "System Users",
     href: "/admin/users",
     icon: UserCheck,
-  },
-  {
-    name: "Face Verifications",
-    href: "/admin/face-verifications",
-    icon: ScanFace,
-  },
-  {
-    name: "Report",
-    href: "/admin/reports",
-    icon: ClipboardPenLine,
   },
   {
     name: "Activity Logs",
