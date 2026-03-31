@@ -78,7 +78,7 @@ export default function PermissionsManagement() {
   const canDelete = canManagePermissions(loginState as any, 'delete');
 
   const filteredPermissions = permissions.filter((permission) =>
-    permission.permissionName.toLowerCase().includes(searchTerm.toLowerCase())
+    (permission.permissionName || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleCreatePermission = async () => {

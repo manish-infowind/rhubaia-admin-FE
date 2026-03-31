@@ -16,6 +16,7 @@ import Profile from "./pages/admin/Profile";
 import AdminManagement from "./pages/admin/AdminManagement";
 import RolesManagement from "./pages/admin/RolesManagement";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
+import AiUsage from "./pages/admin/AiUsage";
 import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
@@ -79,6 +80,16 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <Profile />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ai-usage"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <AiUsage />
                 </AdminLayout>
               </ProtectedRoute>
             }

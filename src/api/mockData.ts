@@ -449,15 +449,8 @@ export const oldNewQue = [
 export const statusList = [
   { name: "All Statuses", value: "all" },
   { name: "Active", value: "active" },
-  { name: "Paused", value: "paused" },
+  { name: "Inactive", value: "inactive" },
   { name: "Deleted", value: "deleted" },
-  { name: "Pending", value: "pending" },
-  { name: "Mobile Verification Pending", value: "mobile_verification_pending" },
-  { name: "Mobile Verified", value: "mobile_verified" },
-  { name: "Basic Info Collected", value: "basic_info_collected" },
-  { name: "Email Verified", value: "email_verified" },
-  { name: "Face Verified", value: "face_verified" },
-  { name: "Completed", value: "completed" },
 ];
 
 export const genderList = [

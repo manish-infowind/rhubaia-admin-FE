@@ -4,6 +4,7 @@ import {
   ApiResponse, 
   CreateRoleRequest,
   CreateRoleResponse,
+  Role,
   UpdateRoleRequest,
   UpdateRoleResponse,
   RolesListResponse,
@@ -14,6 +15,42 @@ import {
   AssignPermissionsToRoleResponse,
   RolePermissionsResponse
 } from '../types';
+
+type RoleApiItem = {
+  id: number;
+  roleName?: string;
+  role_name?: string;
+  description?: string;
+  isActive?: boolean;
+  is_active?: boolean;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+};
+
+const normalizeRole = (role: RoleApiItem): Role => ({
+  id: role.id,
+  roleName: role.roleName ?? role.role_name ?? '',
+  description: role.description,
+  isActive: role.isActive ?? role.is_active ?? true,
+});
+
+const normalizeRolesListResponse = (
+  response: ApiResponse<RolesListResponse>,
+): ApiResponse<RolesListResponse> => {
+  if (!response.success || !response.data?.roles) {
+    return response;
+  }
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      roles: response.data.roles.map((role) => normalizeRole(role as RoleApiItem)),
+    },
+  };
+};
 
 export class RoleService {
   // Create a new role
@@ -35,7 +72,7 @@ export class RoleService {
       const response = await apiClient.get<RolesListResponse>(
         API_CONFIG.ENDPOINTS.ROLES.LIST
       );
-      return response;
+      return normalizeRolesListResponse(response);
     } catch (error) {
       throw error;
     }

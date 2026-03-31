@@ -296,18 +296,16 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
               type="monotone"
               dataKey={dataKeys[0]} 
               stroke={CHART_COLORS[0]}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+              strokeWidth={2.5}
+              dot={false}
             />
             <Line 
               yAxisId="right"
               type="monotone"
               dataKey={dataKeys[1]} 
               stroke={CHART_COLORS[1]}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+              strokeWidth={2.5}
+              dot={false}
             />
           </RechartsLineChart>
         </ResponsiveContainer>
@@ -346,9 +344,8 @@ export function ChartRenderer({ data, chartType, dataKeys, height = 400, isMulti
               type="monotone"
               dataKey={key} 
               stroke={CHART_COLORS[index % CHART_COLORS.length]}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+              strokeWidth={2.5}
+              dot={false}
             />
           ))}
         </RechartsLineChart>

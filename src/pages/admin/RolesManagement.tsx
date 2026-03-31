@@ -66,8 +66,8 @@ export default function RolesManagement() {
   const canDelete = canManageRoles(loginState as any, 'delete');
 
   const filteredRoles = roles.filter((role) =>
-    role.roleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    role.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    (role.roleName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (role.description || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Create Role API Handlers

@@ -8,6 +8,7 @@ import {
   UserCog,
   Key,
   UserCheck,
+  Sparkles,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +34,11 @@ const navigation = [
     name: "System Users",
     href: "/admin/users",
     icon: UserCheck,
+  },
+  {
+    name: "AI Usage",
+    href: "/admin/ai-usage",
+    icon: Sparkles,
   },
 ];
 

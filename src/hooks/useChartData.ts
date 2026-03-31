@@ -169,7 +169,6 @@ const loadUserGrowthData = async (chartConfig: ChartConfig): Promise<AnalyticsDa
       years?: number[];
       startDate?: Date;
       endDate?: Date;
-      gender?: 'm' | 'f';
     } = {};
 
     // Build options based on timeRange
@@ -187,10 +186,6 @@ const loadUserGrowthData = async (chartConfig: ChartConfig): Promise<AnalyticsDa
         options.startDate = chartConfig.dateRange.from;
         options.endDate = chartConfig.dateRange.to;
       }
-    }
-
-    if (chartConfig.gender && chartConfig.gender !== 'all') {
-      options.gender = chartConfig.gender;
     }
 
     const response = await DashboardService.getUserGrowth(chartConfig.timeRange, options);
@@ -382,40 +377,58 @@ const loadActiveUsersData = async (chartConfig: ChartConfig): Promise<AnalyticsD
   }
 };
 
+const resolveChartDateRange = (chartConfig: ChartConfig) => {
+  const today = new Date();
+
+  if (chartConfig.timeRange === 'monthly' && chartConfig.selectedYears && chartConfig.selectedYears.length > 0) {
+    const minYear = Math.min(...chartConfig.selectedYears);
+    const maxYear = Math.max(...chartConfig.selectedYears);
+    return {
+      startDate: new Date(minYear, 0, 1),
+      endDate: maxYear === today.getFullYear() ? today : new Date(maxYear, 11, 31),
+    };
+  }
+
+  if (chartConfig.timeRange === 'custom' && chartConfig.dateRange.from && chartConfig.dateRange.to) {
+    return {
+      startDate: chartConfig.dateRange.from,
+      endDate: chartConfig.dateRange.to,
+    };
+  }
+
+  if (
+    (chartConfig.timeRange === 'daily' || chartConfig.timeRange === 'weekly') &&
+    chartConfig.selectedMonth !== undefined &&
+    chartConfig.selectedYear !== undefined
+  ) {
+    return {
+      startDate: new Date(chartConfig.selectedYear, chartConfig.selectedMonth, 1),
+      endDate:
+        chartConfig.selectedYear === today.getFullYear() &&
+        chartConfig.selectedMonth === today.getMonth()
+          ? today
+          : new Date(chartConfig.selectedYear, chartConfig.selectedMonth + 1, 0),
+    };
+  }
+
+  return {
+    startDate: (() => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 3);
+      return d;
+    })(),
+    endDate: today,
+  };
+};
+
 // Load revenue analytics data using the new dedicated API
 const loadRevenueData = async (chartConfig: ChartConfig): Promise<AnalyticsData | null> => {
   try {
-    const options: {
-      month?: number;
-      year?: number;
-      years?: number[];
-      startDate?: Date;
-      endDate?: Date;
-      gender?: 'm' | 'f';
-    } = {};
-
-    // Build options based on timeRange
-    if (chartConfig.timeRange === 'daily' || chartConfig.timeRange === 'weekly') {
-      if (chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
-        options.month = chartConfig.selectedMonth;
-        options.year = chartConfig.selectedYear;
-      }
-    } else if (chartConfig.timeRange === 'monthly') {
-      if (chartConfig.selectedYears && chartConfig.selectedYears.length > 0) {
-        options.years = chartConfig.selectedYears;
-      }
-    } else if (chartConfig.timeRange === 'custom') {
-      if (chartConfig.dateRange.from && chartConfig.dateRange.to) {
-        options.startDate = chartConfig.dateRange.from;
-        options.endDate = chartConfig.dateRange.to;
-      }
-    }
-
-    if (chartConfig.gender && chartConfig.gender !== 'all') {
-      options.gender = chartConfig.gender;
-    }
-
-    const response = await DashboardService.getRevenue(chartConfig.timeRange, options);
+    const { startDate, endDate } = resolveChartDateRange(chartConfig);
+    const response = await DashboardService.getMonetizationFinanceAnalytics({
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
     
     if (response.success && response.data) {
       const revenueAnalytics = extractArrayFromPayload(response.data, ["revenueAnalytics"]);
@@ -470,26 +483,7 @@ const loadRevenueData = async (chartConfig: ChartConfig): Promise<AnalyticsData 
   } catch (error) {
     console.error('Error loading revenue analytics:', error);
     // Fallback to mock data on error
-    let calculatedStartDate: Date;
-    let calculatedEndDate: Date = new Date();
-    
-    if (chartConfig.timeRange === 'monthly' && chartConfig.selectedYears && chartConfig.selectedYears.length > 0) {
-      const minYear = Math.min(...chartConfig.selectedYears);
-      calculatedStartDate = new Date(minYear, 0, 1);
-      const maxYear = Math.max(...chartConfig.selectedYears);
-      calculatedEndDate = new Date(maxYear, 11, 31);
-    } else if (chartConfig.timeRange === 'custom' && chartConfig.dateRange.from && chartConfig.dateRange.to) {
-      calculatedStartDate = chartConfig.dateRange.from;
-      calculatedEndDate = chartConfig.dateRange.to;
-    } else if (chartConfig.timeRange === 'daily' && chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
-      calculatedStartDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth, 1);
-      calculatedEndDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth + 1, 0);
-    } else if (chartConfig.timeRange === 'weekly' && chartConfig.selectedMonth !== undefined && chartConfig.selectedYear !== undefined) {
-      calculatedStartDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth, 1);
-      calculatedEndDate = new Date(chartConfig.selectedYear, chartConfig.selectedMonth + 1, 0);
-    } else {
-      calculatedStartDate = (() => { const d = new Date(); d.setMonth(d.getMonth() - 3); return d; })();
-    }
+    const { startDate: calculatedStartDate, endDate: calculatedEndDate } = resolveChartDateRange(chartConfig);
     
     return generateMockAnalyticsData(
       calculatedStartDate, 
@@ -1325,4 +1319,3 @@ export function useChartData(
 
   return { data, loading };
 }
-

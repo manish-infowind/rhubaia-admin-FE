@@ -7,7 +7,12 @@ export const useDashboardStatsSummary = () => {
     queryFn: async () => {
       const response = await DashboardService.getDashboardStatsSummary();
       if (response.success && response.data) {
-        return response.data;
+        return {
+          totalUsers: Number(response.data.totalUsers ?? 0),
+          dailyActiveUsers: Number(response.data.dailyActiveUsers ?? 0),
+          monthlyActiveUsers: Number(response.data.monthlyActiveUsers ?? 0),
+          newUsersThisMonth: Number(response.data.newUsersThisMonth ?? 0),
+        } satisfies DashboardStatsSummary;
       }
       throw new Error(response.message || 'Failed to fetch dashboard stats');
     },

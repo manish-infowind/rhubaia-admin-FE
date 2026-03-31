@@ -110,10 +110,7 @@ export interface DashboardStatsSummary {
   totalUsers: number;
   dailyActiveUsers: number;
   monthlyActiveUsers: number;
-  userGrowthThisMonth: number;  // Percentage (can be negative)
   newUsersThisMonth: number;
-  swipeToMatchRate: number;  // Swipe to match rate (percentage)
-  lastUpdated: string;  // ISO 8601 date string
 }
 
 // Conversion metric data point (matches API documentation)
@@ -175,6 +172,38 @@ export interface RevenueAnalyticsMetadata {
 export interface RevenueAnalyticsResponse {
   revenueAnalytics: RevenueAnalyticsData[];
   metadata: RevenueAnalyticsMetadata;
+}
+
+export interface MonetizationFinanceAnalyticsPoint {
+  date: string;
+  averageRevenuePerUser: number;
+  averageRevenuePerPayingUser: number;
+  freeToPaidRate: number;
+}
+
+export interface MonetizationFinanceAnalyticsResponse {
+  revenueAnalytics: MonetizationFinanceAnalyticsPoint[];
+  metadata: {
+    totalRecords: number;
+    startDate: string;
+    endDate: string;
+    timeRange: string;
+  };
+}
+
+export interface FinanceSummaryResponse {
+  totalRevenue: number;
+  totalNewUsers: number;
+  totalNewPayingUsers: number;
+  totalChurnedUsers: number;
+  averageRevenuePerUser: number;
+  averageRevenuePerPayingUser: number;
+  freeToPaidRate: number;
+  averageLtv: number | null;
+  metadata: {
+    startDate: string;
+    endDate: string;
+  };
 }
 
 // Conversation analytics data point
@@ -333,6 +362,24 @@ export interface DashboardData {
 }
 
 export class DashboardService {
+  private static buildDateRangeQuery(params?: {
+    startDate?: string;
+    endDate?: string;
+  }): string {
+    const searchParams = new URLSearchParams();
+
+    if (params?.startDate) {
+      searchParams.set("startDate", params.startDate);
+    }
+
+    if (params?.endDate) {
+      searchParams.set("endDate", params.endDate);
+    }
+
+    const query = searchParams.toString();
+    return query ? `?${query}` : "";
+  }
+
   // Get complete dashboard data
   static async getDashboard(): Promise<ApiResponse<DashboardData>> {
     try {
@@ -402,7 +449,6 @@ export class DashboardService {
       years?: number[];
       startDate?: Date;
       endDate?: Date;
-      gender?: 'm' | 'f';
     }
   ): Promise<ApiResponse<UserGrowthResponse>> {
     try {
@@ -431,11 +477,6 @@ export class DashboardService {
         if (options.endDate) {
           params.append('endDate', options.endDate.toISOString());
         }
-      }
-
-      // Gender filter (optional)
-      if (options.gender) {
-        params.append('gender', options.gender);
       }
 
       const url = `${API_CONFIG.ENDPOINTS.DASHBOARD.USER_GROWTH}?${params.toString()}`;
@@ -609,6 +650,44 @@ export class DashboardService {
         API_CONFIG.ENDPOINTS.DASHBOARD.STATS_SUMMARY
       );
       
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getMonetizationFinanceAnalytics(params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<ApiResponse<MonetizationFinanceAnalyticsResponse>> {
+    try {
+      const query = this.buildDateRangeQuery(params);
+      const response = await apiClient.get<MonetizationFinanceAnalyticsResponse>(
+        `${API_CONFIG.ENDPOINTS.DASHBOARD.MONETIZATION_FINANCE}${query}`,
+        {
+          timeout: API_CONFIG.ANALYTICS_TIMEOUT,
+        },
+      );
+
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getFinanceSummary(params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<ApiResponse<FinanceSummaryResponse>> {
+    try {
+      const query = this.buildDateRangeQuery(params);
+      const response = await apiClient.get<FinanceSummaryResponse>(
+        `${API_CONFIG.ENDPOINTS.DASHBOARD.FINANCE_SUMMARY}${query}`,
+        {
+          timeout: API_CONFIG.ANALYTICS_TIMEOUT,
+        },
+      );
+
       return response;
     } catch (error) {
       throw error;

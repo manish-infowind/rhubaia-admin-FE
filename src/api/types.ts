@@ -795,6 +795,7 @@ export interface UserListItem {
   uuid: string;
   firstName: string;
   lastName: string;
+  username?: string | null;
   email: string | null;
   phone: string;
   countryCode: string;
@@ -948,8 +949,9 @@ export interface UserListResponse {
 export interface UserListParams {
   page?: number;
   limit?: number;
+  offset?: number;
   search?: string;
-  status?: string;
+  status?: 'active' | 'inactive' | 'deleted';
   gender?: 'm' | 'f' | 'o';
 }
 

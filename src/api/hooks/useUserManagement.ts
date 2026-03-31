@@ -15,6 +15,41 @@ export const useUserManagement = (params?: UserListParams) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const getStableUserId = (raw: any): number => {
+    if (typeof raw?.id === 'number' && Number.isFinite(raw.id)) {
+      return raw.id;
+    }
+
+    const source = String(raw?.uuid ?? raw?.email ?? raw?.username ?? '');
+    if (!source) {
+      return 0;
+    }
+
+    let hash = 0;
+    for (let index = 0; index < source.length; index += 1) {
+      hash = (hash * 31 + source.charCodeAt(index)) >>> 0;
+    }
+
+    return hash;
+  };
+
+  const getProfileCompletionLabel = (statusCode: number, fallback?: string | null) => {
+    if (fallback) {
+      return fallback;
+    }
+
+    switch (statusCode) {
+      case 0:
+        return 'email_not_verified';
+      case 1:
+        return 'email_verified';
+      case 2:
+        return 'profile_completed';
+      default:
+        return 'unknown';
+    }
+  };
+
   // Get users list
   const {
     data: usersData,
@@ -31,26 +66,38 @@ export const useUserManagement = (params?: UserListParams) => {
 
   // Normalize varying API shapes for users list endpoint.
   const normalizeUser = (raw: any): UserListItem => {
-    const fullName = String(raw?.full_name || '').trim();
+    const fullName = String(raw?.full_name ?? raw?.fullName ?? '').trim();
     const [first, ...rest] = fullName.split(/\s+/).filter(Boolean);
-    const firstName = raw?.firstName ?? first ?? '';
+    const firstName = raw?.firstName ?? first ?? raw?.username ?? '';
     const lastName = raw?.lastName ?? rest.join(' ') ?? '';
-    const profileCompletion = Number(raw?.profile_completion_status ?? raw?.accountCurrentStatus ?? 0);
+    const profileCompletion = Number(
+      raw?.profile_completion_status_code ??
+      raw?.accountCurrentStatus ??
+      0
+    );
     const profile = raw?.profile || {};
     const mappedGender = String(profile?.gender ?? raw?.gender ?? 'o').toLowerCase();
     const gender = (mappedGender === 'm' || mappedGender === 'f' || mappedGender === 'o')
       ? mappedGender as 'm' | 'f' | 'o'
       : 'o';
     const avatarUrl = profile?.avatar_url ?? profile?.profile_image_url ?? raw?.profilePic ?? null;
+    const isActive = Boolean(raw?.is_active ?? raw?.isActive);
+    const isDeleted = Boolean(raw?.is_deleted ?? raw?.isDeleted);
+    const accountStatus = String(raw?.account_status ?? '').toLowerCase();
+    const profileCompletionStatus = getProfileCompletionLabel(
+      profileCompletion,
+      raw?.profile_completion_status ?? raw?.accountStatusDescription
+    );
 
     return {
-      id: Number(raw?.id ?? 0),
+      id: getStableUserId(raw),
       uuid: String(raw?.uuid ?? ''),
       firstName,
       lastName,
+      username: raw?.username ?? null,
       email: raw?.email ?? null,
-      phone: String(raw?.phone ?? raw?.contact ?? ''),
-      countryCode: String(raw?.countryCode ?? raw?.country_code ?? ''),
+      phone: String(raw?.contact ?? raw?.phone ?? ''),
+      countryCode: String(raw?.country_code ?? raw?.countryCode ?? ''),
       gender,
       dob: raw?.dob ?? null,
       profilePic: avatarUrl,
@@ -60,13 +107,13 @@ export const useUserManagement = (params?: UserListParams) => {
       isEmailVerified: Boolean(raw?.isEmailVerified ?? raw?.is_email_verified),
       isPhoneVerified: Boolean(raw?.isPhoneVerified ?? false),
       isFaceVerified: Boolean(raw?.isFaceVerified ?? false),
-      isAccountPaused: Boolean(raw?.isAccountPaused ?? !Boolean(raw?.is_active)),
+      isAccountPaused: Boolean(raw?.isAccountPaused ?? (!isActive && !isDeleted)),
       isBanned: Boolean(raw?.isBanned ?? false),
-      accountCurrentStatus: Number(raw?.profile_completion_status_code ?? profileCompletion),
-      accountStatusName: raw?.accountStatusName ?? raw?.profile_completion_status ?? `Profile ${profileCompletion}`,
-      accountStatusDescription: raw?.accountStatusDescription ?? undefined,
-      isDeleted: Boolean(raw?.isDeleted ?? raw?.is_deleted),
-      createdAt: String(raw?.createdAt ?? raw?.created_at ?? raw?.sign_up_date ?? ''),
+      accountCurrentStatus: profileCompletion,
+      accountStatusName: raw?.accountStatusName ?? accountStatus ?? 'active',
+      accountStatusDescription: raw?.accountStatusDescription ?? profileCompletionStatus,
+      isDeleted,
+      createdAt: String(raw?.sign_up_date ?? raw?.createdAt ?? raw?.created_at ?? ''),
       updatedAt: String(raw?.updatedAt ?? raw?.updated_at ?? ''),
     };
   };
@@ -335,55 +382,6 @@ export const useUserManagement = (params?: UserListParams) => {
     },
   });
 
-  // Ban user mutation
-  const banUserMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: { actionType: string; reasonCode: string; reason?: string; relatedReportId: number; expiresAt?: string } }) =>
-      UserManagementService.banUser(id, data),
-    onSuccess: (response) => {
-      if (response.success) {
-        toast({
-          title: "User Banned",
-          description: "User has been banned successfully.",
-          variant: "destructive",
-        });
-        // Invalidate and refetch users list
-        queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to ban user. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Unban user mutation
-  const unbanUserMutation = useMutation({
-    mutationFn: (id: number | string) => UserManagementService.unbanUser(id),
-    onSuccess: (response) => {
-      if (response.success) {
-        toast({
-          title: "User Unbanned",
-          description: "User has been unbanned successfully.",
-        });
-        // Invalidate and refetch users list
-        queryClient.invalidateQueries({ queryKey: userKeys.lists() });
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to unban user. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Fetch user moderation actions (on-demand)
-  const getUserModerationActions = (id: number | string) => UserManagementService.getUserModerationActions(id);
-
   return {
     users,
     pagination,
@@ -397,11 +395,6 @@ export const useUserManagement = (params?: UserListParams) => {
     isTogglingPause: togglePauseMutation.isPending,
     deleteUser: deleteUserMutation.mutate,
     isDeleting: deleteUserMutation.isPending,
-    banUser: banUserMutation.mutate,
-    isBanning: banUserMutation.isPending,
-    unbanUser: unbanUserMutation.mutate,
-    isUnbanning: unbanUserMutation.isPending,
-    getUserModerationActions,
   };
 };
 

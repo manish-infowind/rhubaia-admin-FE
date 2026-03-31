@@ -2,6 +2,151 @@ import { apiClient } from '../client';
 import { API_CONFIG } from '../config';
 import { ApiResponse, AdminUser, CreateAdminRequest, UpdateAdminRequest, ChangePasswordRequest, AdminListResponse, AdminStats, QueryParams } from '../types';
 
+type AdminApiRole = {
+  id: number;
+  roleName?: string;
+  role_name?: string;
+  description?: string;
+};
+
+type AdminApiItem = {
+  id?: string;
+  uuid?: string;
+  username?: string;
+  email: string;
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  role?: 'admin' | 'super_admin';
+  phone?: string;
+  countryCode?: string;
+  country_code?: string;
+  location?: string | null;
+  bio?: string | null;
+  profilePic?: string | null;
+  avatar_url?: string | null;
+  isActive?: boolean;
+  is_active?: boolean;
+  twoFactorEnabled?: boolean;
+  permissions?: string[];
+  roles?: AdminApiRole[];
+  isSuperAdmin?: boolean;
+  is_super_admin?: boolean;
+  lastLogin?: string | null;
+  otp_expired_on?: string | null;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+};
+
+type AdminListApiResponse = {
+  items?: AdminApiItem[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages?: number;
+    total_pages?: number;
+    hasNextPage?: boolean;
+    hasPrevPage?: boolean;
+  };
+  data?: AdminUser[];
+};
+
+type AdminStatsApiResponse = {
+  total?: number;
+  active?: number;
+  inactive?: number;
+  online?: number;
+  admins?: number;
+  admin?: number;
+  superAdmins?: number;
+  super_admin?: number;
+};
+
+const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
+  const normalizedRoles = (admin.roles || []).map((role) => ({
+    id: role.id,
+    roleName: role.roleName ?? role.role_name ?? '',
+    description: role.description,
+  }));
+
+  const derivedRole =
+    admin.role ??
+    (admin.isSuperAdmin ?? admin.is_super_admin ? 'super_admin' : 'admin');
+
+  return {
+    id: admin.id ?? admin.uuid ?? '',
+    username: admin.username,
+    email: admin.email,
+    firstName: admin.firstName ?? admin.first_name ?? '',
+    lastName: admin.lastName ?? admin.last_name ?? '',
+    role: derivedRole,
+    phone: admin.phone ?? '',
+    countryCode: admin.countryCode ?? admin.country_code,
+    location: admin.location ?? null,
+    bio: admin.bio ?? null,
+    profilePic: admin.profilePic ?? admin.avatar_url ?? null,
+    isActive: admin.isActive ?? admin.is_active ?? true,
+    twoFactorEnabled: admin.twoFactorEnabled ?? false,
+    permissions: admin.permissions ?? [],
+    roles: normalizedRoles,
+    isSuperAdmin: admin.isSuperAdmin ?? admin.is_super_admin ?? derivedRole === 'super_admin',
+    lastLogin: admin.lastLogin ?? admin.otp_expired_on ?? null,
+    createdAt: admin.createdAt ?? admin.created_at ?? '',
+    updatedAt: admin.updatedAt ?? admin.updated_at ?? '',
+  };
+};
+
+const normalizeAdminListResponse = (
+  response: ApiResponse<AdminListApiResponse>,
+): ApiResponse<AdminListResponse> => {
+  if (!response.success || !response.data) {
+    return response as ApiResponse<AdminListResponse>;
+  }
+
+  const rawItems = response.data.items ?? response.data.data ?? [];
+  const rawPagination = response.data.pagination;
+  const totalPages = rawPagination?.totalPages ?? rawPagination?.total_pages ?? 1;
+
+  return {
+    ...response,
+    data: {
+      data: rawItems.map(normalizeAdminUser),
+      pagination: {
+        page: rawPagination?.page ?? 1,
+        limit: rawPagination?.limit ?? 10,
+        total: rawPagination?.total ?? rawItems.length,
+        totalPages,
+        hasNextPage: rawPagination?.hasNextPage ?? ((rawPagination?.page ?? 1) < totalPages),
+        hasPrevPage: rawPagination?.hasPrevPage ?? ((rawPagination?.page ?? 1) > 1),
+      },
+    },
+  };
+};
+
+const normalizeAdminStatsResponse = (
+  response: ApiResponse<AdminStatsApiResponse>,
+): ApiResponse<AdminStats> => {
+  if (!response.success || !response.data) {
+    return response as ApiResponse<AdminStats>;
+  }
+
+  return {
+    ...response,
+    data: {
+      total: response.data.total ?? 0,
+      superAdmins: response.data.superAdmins ?? response.data.super_admin ?? 0,
+      admins: response.data.admins ?? response.data.admin ?? 0,
+      active: response.data.active ?? 0,
+      inactive: response.data.inactive ?? 0,
+      online: response.data.online ?? 0,
+    },
+  };
+};
+
 export class AdminManagementService {
   // Get all admins with pagination and filters
   static async getAdmins(params?: QueryParams): Promise<ApiResponse<AdminListResponse>> {
@@ -17,8 +162,8 @@ export class AdminManagementService {
       }
 
       const url = `${API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.LIST}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-      const response = await apiClient.get<AdminListResponse>(url);
-      return response;
+      const response = await apiClient.get<AdminListApiResponse>(url);
+      return normalizeAdminListResponse(response);
     } catch (error) {
       throw error;
     }
@@ -27,10 +172,10 @@ export class AdminManagementService {
   // Get admin statistics
   static async getAdminStats(): Promise<ApiResponse<AdminStats>> {
     try {
-      const response = await apiClient.get<AdminStats>(
+      const response = await apiClient.get<AdminStatsApiResponse>(
         API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.STATS
       );
-      return response;
+      return normalizeAdminStatsResponse(response);
     } catch (error) {
       throw error;
     }

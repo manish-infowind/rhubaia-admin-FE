@@ -29,11 +29,9 @@ interface ChartFiltersProps {
   onConfigChange: (config: ChartConfig) => void;
   title: string;
   iconColor?: string;
-  /** When true, hide the gender filter (e.g. for Feed Response Time where male/female are not included) */
-  hideGenderFilter?: boolean;
 }
 
-export function ChartFilters({ config, onConfigChange, title, iconColor = "text-brand-green", hideGenderFilter = false }: ChartFiltersProps) {
+export function ChartFilters({ config, onConfigChange, title, iconColor = "text-brand-green" }: ChartFiltersProps) {
   const { toast } = useToast();
 
   const updateConfig = (updates: Partial<ChartConfig>) => {
@@ -394,11 +392,6 @@ export function ChartFilters({ config, onConfigChange, title, iconColor = "text-
 
   // Check if this is the Conversion Insights chart
   const isConversionInsights = title === "Conversion Insights Analytics";
-  const isGenderDisabledForConversion =
-    isConversionInsights &&
-    config.conversionType &&
-    ['message-before-match', 'subscription', 'matches'].includes(config.conversionType);
-
   return (
     <div className="flex items-center gap-2 flex-wrap w-full">
       {/* Conversion Type Filter - Only for Conversion Insights */}
@@ -408,11 +401,6 @@ export function ChartFilters({ config, onConfigChange, title, iconColor = "text-
           onValueChange={(value) =>
             updateConfig({
               conversionType: value as ChartConfig['conversionType'],
-              // When conversion type disables gender, force it back to 'all'
-              ...( ['message-before-match', 'subscription', 'matches'].includes(value)
-                ? { gender: 'all' as ChartConfig['gender'] }
-                : {}
-              ),
             })
           }
         >
@@ -425,27 +413,6 @@ export function ChartFilters({ config, onConfigChange, title, iconColor = "text-
             <SelectItem value="likes">Likes</SelectItem>
             <SelectItem value="matches">Matches</SelectItem>
             <SelectItem value="gifts">Gifts</SelectItem>
-          </SelectContent>
-        </Select>
-      )}
-
-      {/* Gender Filter (hidden for e.g. Feed Response Time - no male/female breakdown) */}
-      {!hideGenderFilter && (
-        <Select
-          value={(config.gender || 'all')}
-          onValueChange={(value) => {
-            if (isGenderDisabledForConversion) return;
-            updateConfig({ gender: value as ChartConfig['gender'] });
-          }}
-          disabled={isGenderDisabledForConversion}
-        >
-          <SelectTrigger className="h-8 w-[120px] text-xs" disabled={isGenderDisabledForConversion}>
-            <SelectValue placeholder="Gender" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="m">Male</SelectItem>
-            <SelectItem value="f">Female</SelectItem>
           </SelectContent>
         </Select>
       )}
@@ -767,4 +734,3 @@ export function ChartFilters({ config, onConfigChange, title, iconColor = "text-
     </div>
   );
 }
-
