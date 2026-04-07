@@ -1224,7 +1224,8 @@ const loadFeedResponseTimeData = async (chartConfig: ChartConfig): Promise<Analy
 
 export function useChartData(
   chartConfig: ChartConfig, 
-  apiType: 'userGrowth' | 'activeUsers' | 'conversions' | 'revenue' | 'conversationAnalytics' | 'appStoreInstallStats' | 'safetyMetrics' | 'feedResponseTime' | 'default' = 'default'
+  apiType: 'userGrowth' | 'activeUsers' | 'conversions' | 'revenue' | 'conversationAnalytics' | 'appStoreInstallStats' | 'safetyMetrics' | 'feedResponseTime' | 'default' = 'default',
+  refreshKey: number = 0
 ) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1309,7 +1310,8 @@ export function useChartData(
     chartConfig.selectedYear, // Include selected year for daily/weekly
     chartConfig.gender, // Include gender in dependencies
     chartConfig.conversionType, // Include conversion type in dependencies
-    apiType // Include this in dependencies
+    apiType, // Include this in dependencies
+    refreshKey
   ]);
 
   return { data, loading };
