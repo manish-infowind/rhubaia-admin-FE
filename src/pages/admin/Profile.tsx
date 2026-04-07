@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -11,9 +10,8 @@ import {
   Save,
   Upload,
   User,
+  Shield,
   Mail,
-  Phone,
-  MapPin,
   Calendar,
   Key,
   Loader2,
@@ -71,9 +69,6 @@ export default function Profile() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
-    location: "",
-    bio: "",
   });
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -95,9 +90,6 @@ export default function Profile() {
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         email: profile.email || "",
-        phone: profile.phone || "",
-        location: profile.location || "",
-        bio: profile.bio || "",
       });
       // Set avatar URL with cache busting and track loading
       if (profile.avatar) {
@@ -511,67 +503,21 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      id="email"
-                      type="email"
-                      className="pl-10"
-                      value={localProfile.email}
-                      onChange={(e) =>
-                        setLocalProfile({ ...localProfile, email: e.target.value })
-                      }
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      id="phone"
-                      className="pl-10"
-                      value={localProfile.phone}
-                      onChange={(e) =>
-                        setLocalProfile({ ...localProfile, phone: e.target.value })
-                      }
-                      placeholder="Enter phone number"
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    id="location"
+                    id="email"
+                    type="email"
                     className="pl-10"
-                    value={localProfile.location}
+                    value={localProfile.email}
                     onChange={(e) =>
-                      setLocalProfile({ ...localProfile, location: e.target.value })
+                      setLocalProfile({ ...localProfile, email: e.target.value })
                     }
-                    placeholder="Enter location"
+                    placeholder="Enter email address"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={localProfile.bio}
-                  onChange={(e) =>
-                    setLocalProfile({ ...localProfile, bio: e.target.value })
-                  }
-                  placeholder="Tell us about yourself"
-                  rows={4}
-                />
               </div>
             </CardContent>
           </Card>

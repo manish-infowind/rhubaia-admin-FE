@@ -37,9 +37,6 @@ export interface UpdateProfileRequest {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
-  location?: string;
-  bio?: string;
 }
 
 export interface ChangePasswordRequest {
