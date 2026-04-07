@@ -171,35 +171,7 @@ export function UserEditModal({
                     </div>
 
                     {/* Verification Status */}
-                    <div className="space-y-4">
-                        <h4 className="font-semibold">Verification Status</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="flex items-center justify-between p-3 border rounded-lg">
-                                <Label htmlFor="isEmailVerified">Email Verified</Label>
-                                <Switch
-                                    id="isEmailVerified"
-                                    checked={formData.isEmailVerified || false}
-                                    onCheckedChange={(checked) => handleChange('isEmailVerified', checked)}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between p-3 border rounded-lg">
-                                <Label htmlFor="isPhoneVerified">Phone Verified</Label>
-                                <Switch
-                                    id="isPhoneVerified"
-                                    checked={formData.isPhoneVerified || false}
-                                    onCheckedChange={(checked) => handleChange('isPhoneVerified', checked)}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between p-3 border rounded-lg">
-                                <Label htmlFor="isFaceVerified">Face Verified</Label>
-                                <Switch
-                                    id="isFaceVerified"
-                                    checked={formData.isFaceVerified || false}
-                                    onCheckedChange={(checked) => handleChange('isFaceVerified', checked)}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    {/* Verification Status removed from Admin UI */}
 
                     {/* Account Status */}
                     <div className="space-y-4">

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
     Select,
     SelectContent,
@@ -229,49 +228,6 @@ const UserEditPage = () => {
                                 </SelectContent>
                             </Select>
                         </div> */}
-                    </div>
-                </div>
-
-                {/* Verification Status */}
-                <div className="space-y-4 p-6 border rounded-lg">
-                    <h4 className="font-semibold text-lg mb-4">Verification Status</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="isEmailVerified">Email Verified</Label>
-                            <Switch
-                                id="isEmailVerified"
-                                checked={formData.isEmailVerified || false}
-                                onCheckedChange={(checked) => handleChange('isEmailVerified', checked)}
-                                disabled={isSaving}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="isPhoneVerified">Phone Verified</Label>
-                            <Switch
-                                id="isPhoneVerified"
-                                checked={formData.isPhoneVerified || false}
-                                onCheckedChange={(checked) => handleChange('isPhoneVerified', checked)}
-                                disabled={isSaving}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="isFaceVerified">Face Verified</Label>
-                            <Switch
-                                id="isFaceVerified"
-                                checked={formData.isFaceVerified || false}
-                                onCheckedChange={(checked) => handleChange('isFaceVerified', checked)}
-                                disabled={isSaving}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="isAccountPaused">Account Paused</Label>
-                            <Switch
-                                id="isAccountPaused"
-                                checked={formData.isAccountPaused || false}
-                                onCheckedChange={(checked) => handleChange('isAccountPaused', checked)}
-                                disabled={isSaving}
-                            />
-                        </div>
                     </div>
                 </div>
 

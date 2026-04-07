@@ -671,7 +671,7 @@ const UserViewPage = () => {
                         <Accordion type="multiple" className="w-full">
                             <AccordionItem value="shared-with-user">
                                 <AccordionTrigger>
-                                    Shared closet with user by others ({connectionHistory.sharedClosetWithUserByOthers.length})
+                                    Shared to me ({connectionHistory.sharedClosetWithUserByOthers.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
@@ -699,7 +699,7 @@ const UserViewPage = () => {
 
                             <AccordionItem value="shared-by-user">
                                 <AccordionTrigger>
-                                    Shared closet by user with others ({connectionHistory.sharedClosetByUserWithOthers.length})
+                                    Shared by me ({connectionHistory.sharedClosetByUserWithOthers.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
@@ -727,7 +727,7 @@ const UserViewPage = () => {
 
                             <AccordionItem value="delegated-to-user">
                                 <AccordionTrigger>
-                                    Delegated to user by others ({connectionHistory.delegatedToUserByOthers.length})
+                                    Delegated to me ({connectionHistory.delegatedToUserByOthers.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
@@ -755,7 +755,7 @@ const UserViewPage = () => {
 
                             <AccordionItem value="delegated-by-user">
                                 <AccordionTrigger>
-                                    Delegated by user to others ({connectionHistory.delegatedByUserToOthers.length})
+                                    Delegated by me ({connectionHistory.delegatedByUserToOthers.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
