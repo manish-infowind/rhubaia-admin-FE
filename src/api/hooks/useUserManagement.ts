@@ -139,6 +139,10 @@ export const useUserManagement = (params?: UserListParams) => {
     const invoiceHistory = Array.isArray(subscriptionCurrent?.invoiceHistory)
       ? subscriptionCurrent.invoiceHistory
       : [];
+    const subscriptionHistory = Array.isArray(raw?.subscription?.history)
+      ? raw.subscription.history
+      : [];
+    const hasAnySubscription = Boolean(raw?.subscription?.has_any_subscription ?? raw?.subscription?.hasAnySubscription);
     const metadata = Array.isArray(currentPlan?.metadata) ? currentPlan.metadata : [];
 
     const profileImages = Array.from(
@@ -195,22 +199,38 @@ export const useUserManagement = (params?: UserListParams) => {
       isBlurred: item?.is_blurred ?? undefined,
       revokedAt: item?.revoked_at ?? null,
       createdAt: item?.created_at ?? null,
-      connectedUser: mapConnectedUser(item?.connected_user),
+      connectedUser: mapConnectedUser(
+        item?.connected_user ??
+        item?.user ??
+        item?.granted_by ??
+        item?.owner ??
+        item?.delegate ??
+        item?.shared_with ??
+        null
+      ),
     });
 
     const connectionHistoryRaw = raw?.connection_history ?? {};
     const connectionHistory = {
       sharedClosetWithUserByOthers: Array.isArray(connectionHistoryRaw?.shared_closet_with_user_by_others)
         ? connectionHistoryRaw.shared_closet_with_user_by_others.map(mapConnectionItem)
+        : Array.isArray(connectionHistoryRaw?.closet_shared_with_me)
+          ? connectionHistoryRaw.closet_shared_with_me.map(mapConnectionItem)
         : [],
       sharedClosetByUserWithOthers: Array.isArray(connectionHistoryRaw?.shared_closet_by_user_with_others)
         ? connectionHistoryRaw.shared_closet_by_user_with_others.map(mapConnectionItem)
+        : Array.isArray(connectionHistoryRaw?.closet_shared_by_me)
+          ? connectionHistoryRaw.closet_shared_by_me.map(mapConnectionItem)
         : [],
       delegatedToUserByOthers: Array.isArray(connectionHistoryRaw?.delegated_to_user_by_others)
         ? connectionHistoryRaw.delegated_to_user_by_others.map(mapConnectionItem)
+        : Array.isArray(connectionHistoryRaw?.delegated_to_me)
+          ? connectionHistoryRaw.delegated_to_me.map(mapConnectionItem)
         : [],
       delegatedByUserToOthers: Array.isArray(connectionHistoryRaw?.delegated_by_user_to_others)
         ? connectionHistoryRaw.delegated_by_user_to_others.map(mapConnectionItem)
+        : Array.isArray(connectionHistoryRaw?.delegated_by_me)
+          ? connectionHistoryRaw.delegated_by_me.map(mapConnectionItem)
         : [],
       summary: {
         sharedClosetWithUserByOthers: Number(connectionHistoryRaw?.summary?.shared_closet_with_user_by_others ?? 0),
@@ -219,6 +239,11 @@ export const useUserManagement = (params?: UserListParams) => {
         delegatedByUserToOthers: Number(connectionHistoryRaw?.summary?.delegated_by_user_to_others ?? 0),
       },
     };
+    // Support alternate summary keys from API.
+    connectionHistory.summary.sharedClosetWithUserByOthers = connectionHistory.summary.sharedClosetWithUserByOthers || Number(connectionHistoryRaw?.summary?.closet_shared_with_me ?? 0);
+    connectionHistory.summary.sharedClosetByUserWithOthers = connectionHistory.summary.sharedClosetByUserWithOthers || Number(connectionHistoryRaw?.summary?.closet_shared_by_me ?? 0);
+    connectionHistory.summary.delegatedToUserByOthers = connectionHistory.summary.delegatedToUserByOthers || Number(connectionHistoryRaw?.summary?.delegated_to_me ?? 0);
+    connectionHistory.summary.delegatedByUserToOthers = connectionHistory.summary.delegatedByUserToOthers || Number(connectionHistoryRaw?.summary?.delegated_by_me ?? 0);
 
     return {
       ...base,
@@ -264,6 +289,45 @@ export const useUserManagement = (params?: UserListParams) => {
       subscriptions: firstPlan ? [firstPlan] : [],
       firstPlan,
       connectionHistory,
+      subscriptionDetails: {
+        hasAnySubscription,
+        currentSubscription: currentSubscription ? {
+          id: String(currentSubscription?.id || ''),
+          platform: String(currentSubscription?.platform || ''),
+          status: String(currentSubscription?.status || ''),
+          currentPeriodStart: String(currentSubscription?.currentPeriodStart || ''),
+          currentPeriodEnd: String(currentSubscription?.currentPeriodEnd || ''),
+        } : null,
+        currentPlan: currentPlan ? {
+          id: String(currentPlan?.id || ''),
+          name: String(currentPlan?.name || ''),
+          price: Number(currentPlan?.price || 0),
+          duration: String(currentPlan?.duration || ''),
+          durationInterval: Number(currentPlan?.durationInterval || 1),
+          isActive: Boolean(currentPlan?.isActive ?? true),
+          metadata,
+        } : null,
+        invoiceHistory: invoiceHistory.map((inv: any) => ({
+          id: String(inv?.id || ''),
+          createdAt: String(inv?.createdAt || ''),
+          amount: Number(inv?.amount || 0),
+          currency: String(inv?.currency || ''),
+          status: String(inv?.status || ''),
+          platform: String(inv?.platform || ''),
+          planId: String(inv?.planId || ''),
+          planName: String(inv?.planName || ''),
+        })),
+        history: subscriptionHistory.map((inv: any) => ({
+          id: String(inv?.id || ''),
+          createdAt: String(inv?.createdAt || ''),
+          amount: Number(inv?.amount || 0),
+          currency: String(inv?.currency || ''),
+          status: String(inv?.status || ''),
+          platform: String(inv?.platform || ''),
+          planId: String(inv?.planId || ''),
+          planName: String(inv?.planName || ''),
+        })),
+      },
     };
   };
 

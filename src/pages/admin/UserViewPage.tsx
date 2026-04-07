@@ -551,6 +551,96 @@ const UserViewPage = () => {
 
                 <Separator />
 
+                {/* Subscription Details (API shape) */}
+                {user.subscriptionDetails && (
+                    <div className="space-y-4 p-6 border rounded-lg">
+                        <h4 className="font-semibold text-lg flex items-center gap-2">
+                            <Shield className="h-5 w-5" />
+                            Subscription
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Has Subscription</p>
+                                <Badge variant={user.subscriptionDetails.hasAnySubscription ? 'default' : 'secondary'}>
+                                    {user.subscriptionDetails.hasAnySubscription ? 'Yes' : 'No'}
+                                </Badge>
+                            </div>
+
+                            {user.subscriptionDetails.currentSubscription && (
+                                <>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Platform</p>
+                                        <p className="font-medium">{user.subscriptionDetails.currentSubscription.platform || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Status</p>
+                                        <Badge variant={user.subscriptionDetails.currentSubscription.status === 'active' ? 'default' : 'secondary'}>
+                                            {user.subscriptionDetails.currentSubscription.status || 'N/A'}
+                                        </Badge>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Current Period Start</p>
+                                        <p className="font-medium">{formatDateTime(user.subscriptionDetails.currentSubscription.currentPeriodStart)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Current Period End</p>
+                                        <p className="font-medium">{formatDateTime(user.subscriptionDetails.currentSubscription.currentPeriodEnd)}</p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {user.subscriptionDetails.currentPlan && (
+                            <div className="p-4 rounded-lg border bg-muted/20 space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="font-semibold">{user.subscriptionDetails.currentPlan.name}</p>
+                                    <Badge variant={user.subscriptionDetails.currentPlan.isActive ? 'default' : 'secondary'}>
+                                        {user.subscriptionDetails.currentPlan.isActive ? 'Active' : 'Inactive'}
+                                    </Badge>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <p className="text-muted-foreground">Price</p>
+                                        <p className="font-medium">${user.subscriptionDetails.currentPlan.price}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-muted-foreground">Duration</p>
+                                        <p className="font-medium">
+                                            {user.subscriptionDetails.currentPlan.durationInterval} {user.subscriptionDetails.currentPlan.duration}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {(user.subscriptionDetails.invoiceHistory?.length || 0) > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-sm text-muted-foreground font-medium">Invoice History</p>
+                                <div className="space-y-2">
+                                    {user.subscriptionDetails.invoiceHistory.map((inv) => (
+                                        <div key={inv.id} className="p-3 border rounded-md flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                            <div>
+                                                <p className="font-medium">{inv.planName || 'Plan'}</p>
+                                                <p className="text-xs text-muted-foreground">{formatDateTime(inv.createdAt)}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="text-xs">{inv.platform}</Badge>
+                                                <Badge variant={inv.status === 'active' ? 'default' : 'secondary'} className="text-xs">{inv.status}</Badge>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {inv.currency} {inv.amount}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <Separator />
+
                 {/* Connection History */}
                 {hasConnectionHistory && connectionHistory && (
                     <div className="space-y-4 p-6 border rounded-lg">

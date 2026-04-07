@@ -869,6 +869,43 @@ export interface UserSubscription {
   updatedAt: string;
 }
 
+export interface UserInvoiceItem {
+  id: string;
+  createdAt: string;
+  amount: number;
+  currency: string;
+  status: string;
+  platform: string;
+  planId: string;
+  planName: string;
+}
+
+export interface UserSubscriptionCurrent {
+  id: string;
+  platform: string;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+}
+
+export interface UserSubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  duration: string;
+  durationInterval: number;
+  isActive: boolean;
+  metadata: PlanFeature[];
+}
+
+export interface UserSubscriptionDetails {
+  hasAnySubscription: boolean;
+  currentSubscription: UserSubscriptionCurrent | null;
+  currentPlan: UserSubscriptionPlan | null;
+  invoiceHistory: UserInvoiceItem[];
+  history: UserInvoiceItem[];
+}
+
 export interface UserConnectionHistoryUser {
   uuid: string;
   email: string | null;
@@ -917,6 +954,7 @@ export interface UserDetails extends UserListItem {
   subscriptions: UserSubscription[];
   firstPlan: UserSubscription | null;
   connectionHistory?: UserConnectionHistory;
+  subscriptionDetails?: UserSubscriptionDetails;
 }
 
 export interface UpdateUserRequest {
