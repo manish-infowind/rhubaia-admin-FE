@@ -15,7 +15,7 @@ export const roleKeys = {
   list: () => [...roleKeys.lists()] as const,
   details: () => [...roleKeys.all, 'detail'] as const,
   detail: (adminId: string) => [...roleKeys.details(), adminId] as const,
-  rolePermissions: (roleId: number) => [...roleKeys.all, 'permissions', roleId] as const,
+  rolePermissions: (roleId: string | number) => [...roleKeys.all, 'permissions', roleId] as const,
 };
 
 export const useRoles = () => {
@@ -107,7 +107,7 @@ export const useRoles = () => {
 
   // Update role mutation
   const updateRoleMutation = useMutation({
-    mutationFn: ({ roleId, data }: { roleId: number; data: UpdateRoleRequest }) => {
+    mutationFn: ({ roleId, data }: { roleId: string | number; data: UpdateRoleRequest }) => {
       return RoleService.updateRole(roleId, data);
     },
     onSuccess: (response) => {
@@ -132,7 +132,7 @@ export const useRoles = () => {
 
   // Delete role mutation
   const deleteRoleMutation = useMutation({
-    mutationFn: (roleId: number) => {
+    mutationFn: (roleId: string | number) => {
       return RoleService.deleteRole(roleId);
     },
     onSuccess: (response) => {
@@ -163,7 +163,7 @@ export const useRoles = () => {
     
     // Actions
     createRole: createRoleMutation.mutate,
-    updateRole: (roleId: number, data: UpdateRoleRequest, options?: any) => {
+    updateRole: (roleId: string | number, data: UpdateRoleRequest, options?: any) => {
       updateRoleMutation.mutate({ roleId, data }, options);
     },
     assignRole: assignRoleMutation.mutate,
@@ -206,13 +206,13 @@ export const useAdminRoles = (adminId: string) => {
 };
 
 // Hook to get permissions for a specific role
-export const useRolePermissions = (roleId: number) => {
+export const useRolePermissions = (roleId: string | number | null | undefined) => {
   const { toast } = useToast();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: roleKeys.rolePermissions(roleId),
-    queryFn: () => RoleService.getRolePermissions(roleId),
-    enabled: !!roleId && roleId > 0,
+    queryKey: roleKeys.rolePermissions(String(roleId ?? "")),
+    queryFn: () => RoleService.getRolePermissions(String(roleId)),
+    enabled: Boolean(roleId && String(roleId).trim().length > 0),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

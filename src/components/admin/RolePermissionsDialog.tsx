@@ -29,7 +29,7 @@ interface PermissionState {
 }
 
 interface RolePermissionsDialogProps {
-  roleId: number | null;
+  roleId: string | number | null;
   roleName: string;
   isOpen: boolean;
   onClose: () => void;
@@ -44,7 +44,7 @@ export function RolePermissionsDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { permissions, isLoadingPermissions } = usePermissions();
-  const { rolePermissions, isLoading: isLoadingRolePermissions } = useRolePermissions(roleId || 0);
+  const { rolePermissions, isLoading: isLoadingRolePermissions } = useRolePermissions(roleId);
   const { assignPermissionsToRole, isAssigningPermissionsToRole } = useRoles();
 
   const [permissionStates, setPermissionStates] = useState<PermissionState[]>([]);

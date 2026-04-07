@@ -132,7 +132,7 @@ export class RoleService {
 
   // Get permissions for a specific role
   static async getRolePermissions(
-    roleId: number,
+    roleId: string | number,
   ): Promise<ApiResponse<RolePermissionsResponse>> {
     try {
       const url = API_CONFIG.ENDPOINTS.ROLES.GET_ROLE_PERMISSIONS.replace(
@@ -148,7 +148,7 @@ export class RoleService {
 
   // Update a role
   static async updateRole(
-    roleId: number,
+    roleId: string | number,
     data: UpdateRoleRequest,
   ): Promise<ApiResponse<UpdateRoleResponse>> {
     try {
@@ -165,14 +165,14 @@ export class RoleService {
 
   // Delete a role
   static async deleteRole(
-    roleId: number,
-  ): Promise<ApiResponse<{ roleId: number }>> {
+    roleId: string | number,
+  ): Promise<ApiResponse<{ roleId: string | number }>> {
     try {
       const url = API_CONFIG.ENDPOINTS.ROLES.DELETE.replace(
         ":roleId",
         String(roleId),
       );
-      const response = await apiClient.delete<{ roleId: number }>(url);
+      const response = await apiClient.delete<{ roleId: string | number }>(url);
       return response;
     } catch (error) {
       throw error;

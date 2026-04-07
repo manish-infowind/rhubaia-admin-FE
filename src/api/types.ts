@@ -230,7 +230,7 @@ export interface AdminRolesResponse {
 }
 
 export interface AssignPermissionsToRoleRequest {
-  roleId: number;
+  roleId: string | number;
   permissions: Array<{
     permissionName: string;
     crud: string[]; // Array of: 'create' | 'read' | 'update' | 'delete'
@@ -238,7 +238,7 @@ export interface AssignPermissionsToRoleRequest {
 }
 
 export interface AssignPermissionsToRoleResponse {
-  roleId: number;
+  roleId: string | number;
   roleName: string;
   permissions: Array<{
     id: number;
@@ -249,7 +249,7 @@ export interface AssignPermissionsToRoleResponse {
 }
 
 export interface RolePermissionsResponse {
-  roleId: number;
+  roleId: string | number;
   roleName: string;
   permissions: Array<{
     id: number;

@@ -32,7 +32,7 @@ export function RoleEditDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { updateRole, isUpdatingRole } = useRoles();
-  const { rolePermissions } = useRolePermissions(role?.id || 0);
+  const { rolePermissions } = useRolePermissions(role?.id);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
