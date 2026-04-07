@@ -113,6 +113,21 @@ export interface DashboardStatsSummary {
   newUsersThisMonth: number;
 }
 
+export interface AdminJobProcessedDate {
+  date: string;
+  active_user_count?: number;
+  new_users?: number;
+  total_users?: number;
+  upserted: boolean;
+}
+
+export interface AdminJobRunResponse {
+  start_date: string;
+  end_date: string;
+  missing_dates?: string[];
+  processed_dates: AdminJobProcessedDate[];
+}
+
 // Conversion metric data point (matches API documentation)
 export interface ConversionDataPoint {
   metric: string;      // e.g., "Jan 2024", "Week 1 (Jan 2024)", "Jan 01, 2024"
@@ -644,6 +659,30 @@ export class DashboardService {
         API_CONFIG.ENDPOINTS.DASHBOARD.STATS_SUMMARY
       );
       
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async runDailyActiveUsersJob(): Promise<ApiResponse<AdminJobRunResponse>> {
+    try {
+      const response = await apiClient.post<AdminJobRunResponse>(
+        '/jobs/daily-active-users/run',
+        {}
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async runUsersByDateJob(): Promise<ApiResponse<AdminJobRunResponse>> {
+    try {
+      const response = await apiClient.post<AdminJobRunResponse>(
+        '/jobs/users-by-date/run',
+        {}
+      );
       return response;
     } catch (error) {
       throw error;

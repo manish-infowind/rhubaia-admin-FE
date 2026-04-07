@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { LucideIcon, Loader2 } from "lucide-react";
+import { LucideIcon, Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ChartFilters, ChartConfig } from "./ChartFilters";
 import { ChartRenderer } from "./ChartRenderer";
 
@@ -20,6 +21,8 @@ interface ChartCardProps {
   delay?: number;
   originalData?: any; // Original analytics data for year breakdown
   loading?: boolean; // Loading state for the chart
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 export function ChartCard({
@@ -33,6 +36,8 @@ export function ChartCard({
   delay = 0.2,
   originalData,
   loading = false,
+  onRefresh,
+  isRefreshing = false,
 }: ChartCardProps) {
   return (
     <motion.div
@@ -42,10 +47,23 @@ export function ChartCard({
     >
       <Card className="shadow-lg">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg mb-4">
-            <Icon className={`h-5 w-5 ${iconColor}`} />
-            {title}
-          </CardTitle>
+          <div className="flex items-center justify-between mb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Icon className={`h-5 w-5 ${iconColor}`} />
+              {title}
+            </CardTitle>
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+              </Button>
+            )}
+          </div>
           <div className="w-full">
             <ChartFilters
               config={config}

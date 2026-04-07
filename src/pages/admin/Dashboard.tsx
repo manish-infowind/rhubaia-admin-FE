@@ -12,6 +12,8 @@ import { AiUsageGraph } from "@/components/admin/ai-usage/AiUsageGraph";
 import { AiUsageFilters } from "@/components/admin/ai-usage/AiUsageFilters";
 import { useAiUsage } from "@/api/hooks/useAiUsage";
 import type { AiUsageFilterState } from "@/api/types";
+import { useToast } from "@/hooks/use-toast";
+import { DashboardService } from "@/api/services/dashboardService";
 
 const DEFAULT_AI_USAGE_FILTERS: AiUsageFilterState = {
   operation: "all",
@@ -84,17 +86,20 @@ const normalizeGraphDay = (value: string) => {
 };
 
 export default function Dashboard() {
-  const { data: statsSummary, isLoading: statsLoading } = useDashboardStatsSummary();
+  const { toast } = useToast();
+  const { data: statsSummary, isLoading: statsLoading, refetch: refetchStats } = useDashboardStatsSummary();
 
   const [userGrowthChart, setUserGrowthChart] = useState<ChartConfig>(createChartConfig());
   const [activeUsersChart, setActiveUsersChart] = useState<ChartConfig>(createChartConfig());
   const [revenueChart, setRevenueChart] = useState<ChartConfig>(createChartConfig());
   const [aiUsageFilters, setAiUsageFilters] = useState<AiUsageFilterState>(DEFAULT_AI_USAGE_FILTERS);
   const [aiUsageChartType, setAiUsageChartType] = useState<"bar" | "line">("line");
+  const [chartRefreshKey, setChartRefreshKey] = useState(0);
+  const [refreshingChart, setRefreshingChart] = useState<string | null>(null);
 
-  const { data: userGrowthData, loading: userGrowthLoading } = useChartData(userGrowthChart, "userGrowth");
-  const { data: activeUsersData, loading: activeUsersLoading } = useChartData(activeUsersChart, "activeUsers");
-  const { data: revenueData, loading: revenueLoading } = useChartData(revenueChart, "revenue");
+  const { data: userGrowthData, loading: userGrowthLoading } = useChartData(userGrowthChart, "userGrowth", chartRefreshKey);
+  const { data: activeUsersData, loading: activeUsersLoading } = useChartData(activeUsersChart, "activeUsers", chartRefreshKey);
+  const { data: revenueData, loading: revenueLoading } = useChartData(revenueChart, "revenue", chartRefreshKey);
   const {
     operations: aiUsageOperations,
     graph: aiUsageGraph,
@@ -261,6 +266,78 @@ export default function Dashboard() {
     }));
   }, [aiUsageGraph]);
 
+  const refreshDashboardData = async () => {
+    await refetchStats();
+    setChartRefreshKey((prev) => prev + 1);
+  };
+
+  const handleRunUsersByDateJob = async () => {
+    setRefreshingChart("user-growth");
+    try {
+      const response = await DashboardService.runUsersByDateJob();
+      const processedCount = response?.data?.processed_dates?.length ?? 0;
+      toast({
+        title: "Refresh complete",
+        description: `${response?.message || "Users-by-date backfill completed"} (${processedCount} dates processed)`,
+      });
+      await refreshDashboardData();
+    } catch (error: any) {
+      toast({
+        title: "Refresh failed",
+        description: error?.message || "Failed to run users-by-date job.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingChart(null);
+    }
+  };
+
+  const handleRunDailyActiveUsersJob = async () => {
+    setRefreshingChart("active-users");
+    try {
+      const response = await DashboardService.runDailyActiveUsersJob();
+      const processedCount = response?.data?.processed_dates?.length ?? 0;
+      toast({
+        title: "Refresh complete",
+        description: `${response?.message || "Daily active users backfill completed"} (${processedCount} dates processed)`,
+      });
+      await refreshDashboardData();
+    } catch (error: any) {
+      toast({
+        title: "Refresh failed",
+        description: error?.message || "Failed to run daily active users job.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingChart(null);
+    }
+  };
+
+  const handleRunBothJobs = async () => {
+    setRefreshingChart("revenue");
+    try {
+      const [usersByDateResponse, dailyActiveResponse] = await Promise.all([
+        DashboardService.runUsersByDateJob(),
+        DashboardService.runDailyActiveUsersJob(),
+      ]);
+      const usersProcessed = usersByDateResponse?.data?.processed_dates?.length ?? 0;
+      const activeProcessed = dailyActiveResponse?.data?.processed_dates?.length ?? 0;
+      toast({
+        title: "Refresh complete",
+        description: `Users-by-date: ${usersProcessed}, Daily active: ${activeProcessed} dates processed.`,
+      });
+      await refreshDashboardData();
+    } catch (error: any) {
+      toast({
+        title: "Refresh failed",
+        description: error?.message || "Failed to run admin refresh jobs.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingChart(null);
+    }
+  };
+
   if (statsLoading) {
     return <PageLoader pagename="dashboard" />;
   }
@@ -318,6 +395,8 @@ export default function Dashboard() {
           delay={0.2}
           originalData={userGrowthData}
           loading={userGrowthLoading}
+          onRefresh={handleRunUsersByDateJob}
+          isRefreshing={refreshingChart === "user-growth"}
         />
 
         <ChartCard
@@ -335,6 +414,8 @@ export default function Dashboard() {
           delay={0.3}
           originalData={activeUsersData}
           loading={activeUsersLoading}
+          onRefresh={handleRunDailyActiveUsersJob}
+          isRefreshing={refreshingChart === "active-users"}
         />
 
         <ChartCard
