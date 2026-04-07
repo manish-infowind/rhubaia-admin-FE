@@ -35,8 +35,6 @@ import {
   Shield,
   ShieldCheck,
   ShieldX,
-  Phone,
-  MapPin,
   Calendar,
   Loader2,
   Eye,
@@ -55,7 +53,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import { activeList, roleList } from "@/api/mockData";
-import { formatCountryCode, formatPhoneNumber } from "@/validations/validations";
 
 export default function AdminManagement() {
   const loginState = useSelector((state: RootState) => state.auth.loginState);
@@ -80,20 +77,16 @@ export default function AdminManagement() {
     firstName: "",
     lastName: "",
     role: "admin",
-    phone: "",
-    countryCode: "+1",
-    location: "",
-    bio: "",
     permissions: [],
     isActive: true,
   });
 
   // Role and permission selection (separate from formData)
-  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([]);
 
   // Edit mode: selected roles and permissions
-  const [editSelectedRoleId, setEditSelectedRoleId] = useState<number | null>(null);
+  const [editSelectedRoleId, setEditSelectedRoleId] = useState<string | null>(null);
   const [editSelectedPermissionIds, setEditSelectedPermissionIds] = useState<number[]>([]);
 
   // Password validation state
@@ -237,7 +230,7 @@ export default function AdminManagement() {
   // Handle create admin
   const handleCreateAdmin = async () => {
     // Validate required fields
-    if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.countryCode) {
+    if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -270,12 +263,12 @@ export default function AdminManagement() {
     createAdmin(formData, {
       onSuccess: async (response) => {
         if (response.success && response.data) {
-          const adminId = response.data.id;
+          const adminId = (response.data as any).id || (response.data as any).uuid;
 
           // Assign role if selected
-          if (selectedRoleId) {
+          if (selectedRoleId && adminId) {
             assignRole(
-              { adminId, roleIds: [selectedRoleId] }, // Send as array to match API expectation
+              { adminId: String(adminId), roleIds: [String(selectedRoleId)] },
               {
                 onSuccess: () => {
                   toast({
@@ -295,9 +288,9 @@ export default function AdminManagement() {
           }
 
           // Assign permissions if selected
-          if (selectedPermissionIds.length > 0) {
+          if (selectedPermissionIds.length > 0 && adminId) {
             assignPermissions(
-              { adminId, permissionIds: selectedPermissionIds },
+              { adminId: String(adminId), permissionIds: selectedPermissionIds },
               {
                 onSuccess: () => {
                   toast({
@@ -316,6 +309,14 @@ export default function AdminManagement() {
             );
           }
 
+          if (!adminId) {
+            toast({
+              title: "Warning",
+              description: "Admin created but ID was missing, so roles/permissions were not assigned.",
+              variant: "destructive",
+            });
+          }
+
           // Reset form
           setIsCreateModalOpen(false);
           setFormData({
@@ -325,10 +326,6 @@ export default function AdminManagement() {
             firstName: "",
             lastName: "",
             role: "admin",
-            phone: "",
-            countryCode: "+1",
-            location: "",
-            bio: "",
             permissions: [],
             isActive: true,
           });
@@ -369,10 +366,6 @@ export default function AdminManagement() {
     const updateData: UpdateAdminRequest = {
       firstName: formData.firstName,
       lastName: formData.lastName,
-      phone: formData.phone,
-      countryCode: formData.countryCode,
-      location: formData.location,
-      bio: formData.bio,
       isActive: formData.isActive,
       permissions: editSelectedPermissionIds,
     };
@@ -383,11 +376,11 @@ export default function AdminManagement() {
         // Assign/update role if selected
         if (editSelectedRoleId) {
           // Check if admin already has this role
-          const hasRole = adminRoles?.roles?.some(r => r.id === editSelectedRoleId);
+          const hasRole = adminRoles?.roles?.some(r => String(r.id) === String(editSelectedRoleId));
           if (!hasRole) {
             // Assign new role (this will replace existing roles if backend doesn't support multiple)
             assignRole(
-              { adminId: selectedAdmin.id, roleIds: [editSelectedRoleId] }, // Send as array to match API expectation
+              { adminId: String(selectedAdmin.id), roleIds: [String(editSelectedRoleId)] },
               {
                 onError: (error: any) => {
                   toast({
@@ -476,10 +469,6 @@ export default function AdminManagement() {
       firstName: admin.firstName,
       lastName: admin.lastName,
       role: admin.role,
-      phone: admin.phone,
-      countryCode: admin.countryCode || "+1",
-      location: admin.location || "",
-      bio: admin.bio || "",
       permissions: admin.permissions,
       isActive: admin.isActive,
     });
@@ -492,15 +481,41 @@ export default function AdminManagement() {
     setIsEditModalOpen(true);
   };
 
+  // Ensure edit form is always hydrated when modal opens.
+  useEffect(() => {
+    if (!isEditModalOpen || !selectedAdmin) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      username: selectedAdmin.username || selectedAdmin.email.split('@')[0],
+      email: selectedAdmin.email,
+      password: "",
+      firstName: selectedAdmin.firstName || "",
+      lastName: selectedAdmin.lastName || "",
+      role: selectedAdmin.role,
+      permissions: selectedAdmin.permissions,
+      isActive: selectedAdmin.isActive,
+    }));
+  }, [isEditModalOpen, selectedAdmin]);
+
   // Update edit role/permission selection when admin roles/permissions are fetched
   useEffect(() => {
-    if (selectedAdmin && adminRoles?.roles && adminRoles.roles.length > 0) {
-      // Set the first role (or you can allow multiple roles if backend supports it)
-      setEditSelectedRoleId(adminRoles.roles[0].id);
-    } else {
+    if (!selectedAdmin) {
       setEditSelectedRoleId(null);
+      return;
     }
-  }, [adminRoles, selectedAdmin]);
+
+    if (adminRoles?.roles && adminRoles.roles.length > 0) {
+      // Prefer explicit role assignment from admin-role endpoint.
+      setEditSelectedRoleId(String(adminRoles.roles[0].id));
+      return;
+    }
+
+    // Fallback: derive selected role from admin record + role list.
+    const roleFromAdmin = (selectedAdmin.role || '').toLowerCase();
+    const matchedRole = roles.find((role) => role.roleName?.toLowerCase() === roleFromAdmin);
+    setEditSelectedRoleId(matchedRole ? String(matchedRole.id) : null);
+  }, [adminRoles, selectedAdmin, roles]);
 
   // Update edit permission selection when admin permissions are fetched
   useEffect(() => {
@@ -533,18 +548,6 @@ export default function AdminManagement() {
   const openPasswordModal = (admin: AdminUser) => {
     setSelectedAdmin(admin);
     setIsPasswordModalOpen(true);
-  };
-
-  // Handle country code input - uses validation function from validations file
-  const handleCountryCodeChange = (value: string) => {
-    const formatted = formatCountryCode(value);
-    setFormData({ ...formData, countryCode: formatted });
-  };
-
-  // Handle phone number input - uses validation function from validations file
-  const handlePhoneChange = (value: string) => {
-    const formatted = formatPhoneNumber(value);
-    setFormData({ ...formData, phone: formatted });
   };
 
   // Get role badge - now uses roleName from roles array
@@ -607,6 +610,14 @@ export default function AdminManagement() {
     setIsCreateModalOpen(true);
   };
 
+  const handleCreateModalOpenChange = (open: boolean) => {
+    if (!open) closeAdminModal();
+  };
+
+  const handleEditModalOpenChange = (open: boolean) => {
+    if (!open) closeAdminModal();
+  };
+
   // Close Modal and Reset All States
   const closeAdminModal = () => {
     setIsCreateModalOpen(false);
@@ -618,10 +629,6 @@ export default function AdminManagement() {
       firstName: "",
       lastName: "",
       role: "admin",
-      phone: "",
-      countryCode: "+1",
-      location: "",
-      bio: "",
       permissions: [],
       isActive: true,
     });
@@ -667,7 +674,7 @@ export default function AdminManagement() {
         openModal={openAdminModal}
       />
 
-      <Dialog open={isCreateModalOpen} onOpenChange={closeAdminModal}>
+      <Dialog open={isCreateModalOpen} onOpenChange={handleCreateModalOpenChange}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">Add New Admin</DialogTitle>
@@ -750,58 +757,6 @@ export default function AdminManagement() {
               </div>
             </div>
 
-            {/* Contact Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="countryCode">Country Code *</Label>
-                  <Input
-                    id="countryCode"
-                    type="text"
-                    value={formData.countryCode}
-                    onChange={(e) => handleCountryCodeChange(e.target.value)}
-                    placeholder="+1"
-                    className="h-10"
-                    maxLength={10}
-                  />
-                  <p className="text-xs text-muted-foreground">e.g., +1, +91, +44 (max 10 characters)</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="Enter phone number"
-                    className="h-10"
-                    maxLength={15}
-                  />
-                  <p className="text-xs text-muted-foreground">Numbers only (max 15 digits)</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Enter location"
-                    className="h-10"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Bio</label>
-                <Input
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Enter bio"
-                  className="h-10"
-                />
-              </div>
-            </div>
-
             {/* Role & Permissions Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
@@ -820,7 +775,7 @@ export default function AdminManagement() {
                   <select
                     id="role"
                     value={selectedRoleId || ""}
-                    onChange={(e) => setSelectedRoleId(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) => setSelectedRoleId(e.target.value || null)}
                     className="w-full px-3 py-2 border border-border rounded-md bg-background h-10"
                   >
                     <option value="">Select a role...</option>
@@ -1063,7 +1018,6 @@ export default function AdminManagement() {
                         <TableHead>Username</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Phone</TableHead>
                         <TableHead>Created</TableHead>
                         <TableHead>Last Login</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -1072,7 +1026,7 @@ export default function AdminManagement() {
                     <TableBody>
                       {!admins || admins.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                             No admins found
                           </TableCell>
                         </TableRow>
@@ -1086,7 +1040,6 @@ export default function AdminManagement() {
                             <TableCell>@{admin.username || admin.email.split('@')[0]}</TableCell>
                             <TableCell>{getRoleBadge(admin)}</TableCell>
                             <TableCell>{getStatusBadge(admin.isActive)}</TableCell>
-                            <TableCell>{admin.phone || '-'}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {formatDate(admin.createdAt)}
                             </TableCell>
@@ -1208,7 +1161,7 @@ export default function AdminManagement() {
       </motion.div>
 
       {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={closeAdminModal}>
+      <Dialog open={isEditModalOpen} onOpenChange={handleEditModalOpenChange}>
         {isEditModalOpen && (
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -1240,58 +1193,6 @@ export default function AdminManagement() {
                 </div>
               </div>
 
-              {/* Contact Information Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-countryCode">Country Code *</Label>
-                    <Input
-                      id="edit-countryCode"
-                      type="text"
-                      value={formData.countryCode}
-                      onChange={(e) => handleCountryCodeChange(e.target.value)}
-                      placeholder="+1"
-                      className="h-10"
-                      maxLength={10}
-                    />
-                    <p className="text-xs text-muted-foreground">e.g., +1, +91, +44 (max 10 characters)</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-phone">Phone *</Label>
-                    <Input
-                      id="edit-phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handlePhoneChange(e.target.value)}
-                      placeholder="Enter phone number"
-                      className="h-10"
-                      maxLength={15}
-                    />
-                    <p className="text-xs text-muted-foreground">Numbers only (max 15 digits)</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-location">Location</Label>
-                    <Input
-                      id="edit-location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      placeholder="Enter location"
-                      className="h-10"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Bio</label>
-                  <Input
-                    value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                    placeholder="Enter bio"
-                    className="h-10"
-                  />
-                </div>
-              </div>
-
               {/* Role & Permissions Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
@@ -1310,7 +1211,7 @@ export default function AdminManagement() {
                     <select
                       id="edit-role"
                       value={editSelectedRoleId || ""}
-                      onChange={(e) => setEditSelectedRoleId(e.target.value ? Number(e.target.value) : null)}
+                      onChange={(e) => setEditSelectedRoleId(e.target.value || null)}
                       className="w-full px-3 py-2 border border-border rounded-md bg-background h-10"
                       disabled={isLoadingRoles}
                     >
@@ -1631,41 +1532,8 @@ export default function AdminManagement() {
                   </div>
                 </div>
 
-                {/* Information Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Contact Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
-                    <div className="space-y-3">
-                      {selectedAdmin.phone && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <Phone className="h-5 w-5 text-gray-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Phone</p>
-                            <p className="text-sm text-gray-600">{selectedAdmin.phone}</p>
-                          </div>
-                        </div>
-                      )}
-                      {selectedAdmin.location && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <MapPin className="h-5 w-5 text-gray-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Location</p>
-                            <p className="text-sm text-gray-600">{selectedAdmin.location}</p>
-                          </div>
-                        </div>
-                      )}
-                      {selectedAdmin.bio && (
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm font-medium text-gray-900 mb-1">Bio</p>
-                          <p className="text-sm text-gray-600">{selectedAdmin.bio}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Account Information */}
-                  <div className="space-y-4">
+                {/* Account Information */}
+                <div className="space-y-4">
                     <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Account Information</h3>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -1694,7 +1562,6 @@ export default function AdminManagement() {
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
 
                 {/* Permissions */}

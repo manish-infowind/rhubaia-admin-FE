@@ -171,7 +171,7 @@ export interface AdminPermissionsResponse {
 
 // Role Management Types
 export interface Role {
-  id: number;
+  id: string | number;
   roleName: string;
   description?: string;
   isActive?: boolean;
@@ -207,13 +207,13 @@ export interface RolesListResponse {
 
 export interface AssignRoleRequest {
   adminId: string;
-  roleIds: number[]; // Changed from roleId to roleIds (array) to match API expectation
+  roleIds: string[]; // Backend expects UUID strings
 }
 
 export interface AssignRoleResponse {
   adminId: string;
   roles: Array<{
-    id: number;
+    id: string;
     roleName: string;
     description?: string;
   }>;
@@ -223,7 +223,7 @@ export interface AdminRolesResponse {
   adminId: string;
   isSuperAdmin: boolean;
   roles: Array<{
-    id: number;
+    id: string;
     roleName: string;
     description?: string;
   }>;
@@ -335,10 +335,6 @@ export interface CreateAdminRequest {
   firstName: string;
   lastName: string;
   role: 'admin' | 'super_admin';
-  phone: string;
-  countryCode: string; // Required: e.g., "+1", "+91"
-  location: string;
-  bio?: string;
   permissions?: string[];
   isActive?: boolean;
   // Note: roleId and permissionIds should be assigned separately after admin creation
@@ -348,10 +344,6 @@ export interface CreateAdminRequest {
 export interface UpdateAdminRequest {
   firstName?: string;
   lastName?: string;
-  phone?: string;
-  countryCode?: string; // Optional: e.g., "+1", "+91"
-  location?: string;
-  bio?: string;
   permissions?: number[];
   isActive?: boolean;
   // Note: roleId and permissionIds should be assigned separately after admin update

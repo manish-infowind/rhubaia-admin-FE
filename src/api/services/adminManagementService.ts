@@ -16,6 +16,9 @@ type AdminApiItem = {
   email: string;
   firstName?: string;
   first_name?: string;
+  fullName?: string;
+  full_name?: string;
+  name?: string;
   lastName?: string;
   last_name?: string;
   role?: 'admin' | 'super_admin';
@@ -66,6 +69,14 @@ type AdminStatsApiResponse = {
   super_admin?: number;
 };
 
+type CreateAdminApiRequest = {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  is_super_admin?: boolean;
+};
+
 const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
   const normalizedRoles = (admin.roles || []).map((role) => ({
     id: role.id,
@@ -73,16 +84,30 @@ const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
     description: role.description,
   }));
 
+  const inferredRoleFromRoles = normalizedRoles[0]?.roleName?.toLowerCase();
   const derivedRole =
     admin.role ??
-    (admin.isSuperAdmin ?? admin.is_super_admin ? 'super_admin' : 'admin');
+    (admin.isSuperAdmin ?? admin.is_super_admin
+      ? 'super_admin'
+      : inferredRoleFromRoles === 'super_admin'
+        ? 'super_admin'
+        : 'admin');
+
+  const rawFullName = admin.fullName ?? admin.full_name ?? admin.name ?? '';
+  const parsedNameParts = String(rawFullName).trim().split(/\s+/).filter(Boolean);
+  const parsedFirstName = parsedNameParts[0] ?? '';
+  const parsedLastName = parsedNameParts.slice(1).join(' ');
+  const finalFirstName = admin.firstName ?? admin.first_name ?? parsedFirstName;
+  const finalLastName = admin.lastName ?? admin.last_name ?? parsedLastName;
+  const fullName = `${finalFirstName || ''} ${finalLastName || ''}`.trim() || String(admin.email || '');
 
   return {
     id: admin.id ?? admin.uuid ?? '',
     username: admin.username,
     email: admin.email,
-    firstName: admin.firstName ?? admin.first_name ?? '',
-    lastName: admin.lastName ?? admin.last_name ?? '',
+    firstName: finalFirstName,
+    lastName: finalLastName,
+    fullName,
     role: derivedRole,
     phone: admin.phone ?? '',
     countryCode: admin.countryCode ?? admin.country_code,
@@ -93,7 +118,6 @@ const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
     twoFactorEnabled: admin.twoFactorEnabled ?? false,
     permissions: admin.permissions ?? [],
     roles: normalizedRoles,
-    isSuperAdmin: admin.isSuperAdmin ?? admin.is_super_admin ?? derivedRole === 'super_admin',
     lastLogin: admin.lastLogin ?? admin.otp_expired_on ?? null,
     createdAt: admin.createdAt ?? admin.created_at ?? '',
     updatedAt: admin.updatedAt ?? admin.updated_at ?? '',
@@ -195,9 +219,17 @@ export class AdminManagementService {
   // Create new admin
   static async createAdmin(data: CreateAdminRequest): Promise<ApiResponse<AdminUser>> {
     try {
+      const payload: CreateAdminApiRequest = {
+        email: data.email,
+        password: data.password,
+        first_name: data.firstName || undefined,
+        last_name: data.lastName || undefined,
+        is_super_admin: data.role === 'super_admin',
+      };
+
       const response = await apiClient.post<AdminUser>(
         API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.CREATE,
-        data
+        payload
       );
       return response;
     } catch (error) {
