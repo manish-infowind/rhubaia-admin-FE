@@ -52,7 +52,7 @@ const UsersList = () => {
 
     // Filters and search
     const [searchText, setSearchText] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("");
+    const [statusFilter, setStatusFilter] = useState<string>("active");
 
     // Pagination States
     const [currentPage, setCurrentPage] = useState(1);

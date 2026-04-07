@@ -500,7 +500,6 @@ export class DashboardService {
       years?: number[];
       startDate?: Date;
       endDate?: Date;
-      gender?: 'm' | 'f';
     }
   ): Promise<ApiResponse<ActiveUsersResponse>> {
     try {
@@ -529,11 +528,6 @@ export class DashboardService {
         if (options.endDate) {
           params.append('endDate', options.endDate.toISOString());
         }
-      }
-
-      // Gender filter (optional)
-      if (options.gender) {
-        params.append('gender', options.gender);
       }
 
       const url = `${API_CONFIG.ENDPOINTS.DASHBOARD.ACTIVE_USERS}?${params.toString()}`;

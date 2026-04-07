@@ -275,7 +275,6 @@ const loadActiveUsersData = async (chartConfig: ChartConfig): Promise<AnalyticsD
       years?: number[];
       startDate?: Date;
       endDate?: Date;
-      gender?: 'm' | 'f';
     } = {};
 
     // Build options based on timeRange
@@ -293,10 +292,6 @@ const loadActiveUsersData = async (chartConfig: ChartConfig): Promise<AnalyticsD
         options.startDate = chartConfig.dateRange.from;
         options.endDate = chartConfig.dateRange.to;
       }
-    }
-
-    if (chartConfig.gender && chartConfig.gender !== 'all') {
-      options.gender = chartConfig.gender;
     }
 
     const response = await DashboardService.getActiveUsers(chartConfig.timeRange, options);
