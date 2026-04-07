@@ -81,10 +81,10 @@ const UserViewPage = () => {
     const hasConnectionHistory = Boolean(
         connectionHistory &&
         (
-            connectionHistory.summary.sharedClosetWithUserByOthers > 0 ||
-            connectionHistory.summary.sharedClosetByUserWithOthers > 0 ||
-            connectionHistory.summary.delegatedToUserByOthers > 0 ||
-            connectionHistory.summary.delegatedByUserToOthers > 0
+            connectionHistory.summary.closetsISharedWithOthers > 0 ||
+            connectionHistory.summary.closetsSharedWithMe > 0 ||
+            connectionHistory.summary.delegationsReceivedByMe > 0 ||
+            connectionHistory.summary.delegationsISent > 0
         )
     );
     const hasProfileData = Boolean(
@@ -651,31 +651,31 @@ const UserViewPage = () => {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                             <div className="p-3 rounded-md bg-muted/40">
-                                <p className="text-muted-foreground">Shared with user</p>
-                                <p className="text-lg font-semibold">{connectionHistory.summary.sharedClosetWithUserByOthers}</p>
+                                <p className="text-muted-foreground">Closets I shared with others</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.closetsISharedWithOthers}</p>
                             </div>
                             <div className="p-3 rounded-md bg-muted/40">
-                                <p className="text-muted-foreground">Shared by user</p>
-                                <p className="text-lg font-semibold">{connectionHistory.summary.sharedClosetByUserWithOthers}</p>
+                                <p className="text-muted-foreground">Closets shared with me</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.closetsSharedWithMe}</p>
                             </div>
                             <div className="p-3 rounded-md bg-muted/40">
-                                <p className="text-muted-foreground">Delegated to user</p>
-                                <p className="text-lg font-semibold">{connectionHistory.summary.delegatedToUserByOthers}</p>
+                                <p className="text-muted-foreground">Delegations received by me</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.delegationsReceivedByMe}</p>
                             </div>
                             <div className="p-3 rounded-md bg-muted/40">
-                                <p className="text-muted-foreground">Delegated by user</p>
-                                <p className="text-lg font-semibold">{connectionHistory.summary.delegatedByUserToOthers}</p>
+                                <p className="text-muted-foreground">Delegations I sent</p>
+                                <p className="text-lg font-semibold">{connectionHistory.summary.delegationsISent}</p>
                             </div>
                         </div>
 
                         <Accordion type="multiple" className="w-full">
                             <AccordionItem value="shared-with-user">
                                 <AccordionTrigger>
-                                    Shared to me ({connectionHistory.sharedClosetWithUserByOthers.length})
+                                    Closets shared with me ({connectionHistory.closetsSharedWithMe.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
-                                        {connectionHistory.sharedClosetWithUserByOthers.map((item) => (
+                                        {connectionHistory.closetsSharedWithMe.map((item) => (
                                             <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
                                                     {item.connectedUser.avatarUrl ? (
@@ -699,11 +699,11 @@ const UserViewPage = () => {
 
                             <AccordionItem value="shared-by-user">
                                 <AccordionTrigger>
-                                    Shared by me ({connectionHistory.sharedClosetByUserWithOthers.length})
+                                    Closets I shared with others ({connectionHistory.closetsISharedWithOthers.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
-                                        {connectionHistory.sharedClosetByUserWithOthers.map((item) => (
+                                        {connectionHistory.closetsISharedWithOthers.map((item) => (
                                             <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
                                                     {item.connectedUser.avatarUrl ? (
@@ -727,11 +727,11 @@ const UserViewPage = () => {
 
                             <AccordionItem value="delegated-to-user">
                                 <AccordionTrigger>
-                                    Delegated to me ({connectionHistory.delegatedToUserByOthers.length})
+                                    Delegations received by me ({connectionHistory.delegationsReceivedByMe.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
-                                        {connectionHistory.delegatedToUserByOthers.map((item) => (
+                                        {connectionHistory.delegationsReceivedByMe.map((item) => (
                                             <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
                                                     {item.connectedUser.avatarUrl ? (
@@ -755,11 +755,11 @@ const UserViewPage = () => {
 
                             <AccordionItem value="delegated-by-user">
                                 <AccordionTrigger>
-                                    Delegated by me ({connectionHistory.delegatedByUserToOthers.length})
+                                    Delegations I sent ({connectionHistory.delegationsISent.length})
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="space-y-2">
-                                        {connectionHistory.delegatedByUserToOthers.map((item) => (
+                                        {connectionHistory.delegationsISent.map((item) => (
                                             <div key={item.connectionUuid} className="p-3 border rounded-md flex gap-3">
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
                                                     {item.connectedUser.avatarUrl ? (

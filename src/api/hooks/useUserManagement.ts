@@ -212,38 +212,25 @@ export const useUserManagement = (params?: UserListParams) => {
 
     const connectionHistoryRaw = raw?.connection_history ?? {};
     const connectionHistory = {
-      sharedClosetWithUserByOthers: Array.isArray(connectionHistoryRaw?.shared_closet_with_user_by_others)
-        ? connectionHistoryRaw.shared_closet_with_user_by_others.map(mapConnectionItem)
-        : Array.isArray(connectionHistoryRaw?.closet_shared_with_me)
-          ? connectionHistoryRaw.closet_shared_with_me.map(mapConnectionItem)
+      closetsISharedWithOthers: Array.isArray(connectionHistoryRaw?.closets_i_shared_with_others)
+        ? connectionHistoryRaw.closets_i_shared_with_others.map(mapConnectionItem)
         : [],
-      sharedClosetByUserWithOthers: Array.isArray(connectionHistoryRaw?.shared_closet_by_user_with_others)
-        ? connectionHistoryRaw.shared_closet_by_user_with_others.map(mapConnectionItem)
-        : Array.isArray(connectionHistoryRaw?.closet_shared_by_me)
-          ? connectionHistoryRaw.closet_shared_by_me.map(mapConnectionItem)
+      closetsSharedWithMe: Array.isArray(connectionHistoryRaw?.closets_shared_with_me)
+        ? connectionHistoryRaw.closets_shared_with_me.map(mapConnectionItem)
         : [],
-      delegatedToUserByOthers: Array.isArray(connectionHistoryRaw?.delegated_to_user_by_others)
-        ? connectionHistoryRaw.delegated_to_user_by_others.map(mapConnectionItem)
-        : Array.isArray(connectionHistoryRaw?.delegated_to_me)
-          ? connectionHistoryRaw.delegated_to_me.map(mapConnectionItem)
+      delegationsReceivedByMe: Array.isArray(connectionHistoryRaw?.delegations_received_by_me)
+        ? connectionHistoryRaw.delegations_received_by_me.map(mapConnectionItem)
         : [],
-      delegatedByUserToOthers: Array.isArray(connectionHistoryRaw?.delegated_by_user_to_others)
-        ? connectionHistoryRaw.delegated_by_user_to_others.map(mapConnectionItem)
-        : Array.isArray(connectionHistoryRaw?.delegated_by_me)
-          ? connectionHistoryRaw.delegated_by_me.map(mapConnectionItem)
+      delegationsISent: Array.isArray(connectionHistoryRaw?.delegations_i_sent)
+        ? connectionHistoryRaw.delegations_i_sent.map(mapConnectionItem)
         : [],
       summary: {
-        sharedClosetWithUserByOthers: Number(connectionHistoryRaw?.summary?.shared_closet_with_user_by_others ?? 0),
-        sharedClosetByUserWithOthers: Number(connectionHistoryRaw?.summary?.shared_closet_by_user_with_others ?? 0),
-        delegatedToUserByOthers: Number(connectionHistoryRaw?.summary?.delegated_to_user_by_others ?? 0),
-        delegatedByUserToOthers: Number(connectionHistoryRaw?.summary?.delegated_by_user_to_others ?? 0),
+        closetsISharedWithOthers: Number(connectionHistoryRaw?.summary?.closets_i_shared_with_others ?? 0),
+        closetsSharedWithMe: Number(connectionHistoryRaw?.summary?.closets_shared_with_me ?? 0),
+        delegationsReceivedByMe: Number(connectionHistoryRaw?.summary?.delegations_received_by_me ?? 0),
+        delegationsISent: Number(connectionHistoryRaw?.summary?.delegations_i_sent ?? 0),
       },
     };
-    // Support alternate summary keys from API.
-    connectionHistory.summary.sharedClosetWithUserByOthers = connectionHistory.summary.sharedClosetWithUserByOthers || Number(connectionHistoryRaw?.summary?.closet_shared_with_me ?? 0);
-    connectionHistory.summary.sharedClosetByUserWithOthers = connectionHistory.summary.sharedClosetByUserWithOthers || Number(connectionHistoryRaw?.summary?.closet_shared_by_me ?? 0);
-    connectionHistory.summary.delegatedToUserByOthers = connectionHistory.summary.delegatedToUserByOthers || Number(connectionHistoryRaw?.summary?.delegated_to_me ?? 0);
-    connectionHistory.summary.delegatedByUserToOthers = connectionHistory.summary.delegatedByUserToOthers || Number(connectionHistoryRaw?.summary?.delegated_by_me ?? 0);
 
     return {
       ...base,

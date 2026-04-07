@@ -932,17 +932,17 @@ export interface UserConnectionHistoryItem {
 }
 
 export interface UserConnectionHistorySummary {
-  sharedClosetWithUserByOthers: number;
-  sharedClosetByUserWithOthers: number;
-  delegatedToUserByOthers: number;
-  delegatedByUserToOthers: number;
+  closetsISharedWithOthers: number;
+  closetsSharedWithMe: number;
+  delegationsReceivedByMe: number;
+  delegationsISent: number;
 }
 
 export interface UserConnectionHistory {
-  sharedClosetWithUserByOthers: UserConnectionHistoryItem[];
-  sharedClosetByUserWithOthers: UserConnectionHistoryItem[];
-  delegatedToUserByOthers: UserConnectionHistoryItem[];
-  delegatedByUserToOthers: UserConnectionHistoryItem[];
+  closetsISharedWithOthers: UserConnectionHistoryItem[];
+  closetsSharedWithMe: UserConnectionHistoryItem[];
+  delegationsReceivedByMe: UserConnectionHistoryItem[];
+  delegationsISent: UserConnectionHistoryItem[];
   summary: UserConnectionHistorySummary;
 }
 
