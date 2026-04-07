@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,8 +10,6 @@ import {
     Trash,
     Eye,
     Search,
-    Pause,
-    Play,
 } from "lucide-react";
 import {
     Table,
@@ -35,13 +32,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import { statusList, tableConfig } from "@/api/mockData";
 import PageLoader from "@/components/common/PageLoader";
 import RetryPage from "@/components/common/RetryPage";
-import { format } from "date-fns";
 
 // Helper function to format gender
 const formatGender = (gender: 'm' | 'f' | 'o'): string => {
@@ -53,29 +47,7 @@ const formatGender = (gender: 'm' | 'f' | 'o'): string => {
     return genderMap[gender] || gender;
 };
 
-// Helper function to get status badge variant
-const getStatusBadgeVariant = (status: number, isPaused: boolean, isDeleted: boolean) => {
-    if (isDeleted) return 'destructive';
-    if (isPaused) return 'secondary';
-    if (status === 5) return 'default';
-    if (status >= 3) return 'secondary';
-    return 'outline';
-};
-
-// Helper function to format date
-const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'N/A';
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'N/A';
-        return format(date, 'MMM dd, yyyy hh:mm a');
-    } catch (error) {
-        return 'N/A';
-    }
-};
-
 const UsersList = () => {
-    const { toast } = useToast();
     const navigate = useNavigate();
 
     // Filters and search
@@ -125,8 +97,6 @@ const UsersList = () => {
         isLoading,
         error,
         refetch,
-        togglePause,
-        isTogglingPause,
         deleteUser: deleteUserMutation,
         isDeleting,
     } = useUserManagement(queryParams);
@@ -182,19 +152,6 @@ const UsersList = () => {
             );
         }
     }, [deleteUser, deleteUserMutation, closeDeleteDialog]);
-
-    // Handle toggle pause
-    const handleTogglePause = useCallback((user: UserListItem) => {
-        const userRouteId = user.uuid || String(user.id);
-        togglePause(userRouteId, {
-            onSuccess: () => {
-                toast({
-                    title: user.isAccountPaused ? "User Unpaused" : "User Paused",
-                    description: `${user.firstName} ${user.lastName} has been ${user.isAccountPaused ? 'unpaused' : 'paused'}.`,
-                });
-            },
-        });
-    }, [togglePause, toast]);
 
     // Pagination helpers
     const handlePageChange = useCallback((page: number) => {
@@ -329,7 +286,7 @@ const UsersList = () => {
                                             {col.label}
                                         </SortableHeader>
                                     ) : (
-                                        <TableHead key="actions">Actions</TableHead>
+                                        <TableHead key={col.label}>{col.label}</TableHead>
                                     )
                                 )}
                             </TableRow>
@@ -372,6 +329,13 @@ const UsersList = () => {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
+                                            <Badge
+                                                variant={user.isDeleted ? 'destructive' : 'secondary'}
+                                            >
+                                                {user.isDeleted ? 'Deleted' : 'Not Deleted'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <Eye
                                                     className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-blue-600"
@@ -381,21 +345,6 @@ const UsersList = () => {
                                                     className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-amber-600"
                                                     onClick={() => handleEditUser(user)}
                                                 />
-                                                {user.isAccountPaused ? (
-                                                    <div title="Unpause User">
-                                                        <Play
-                                                            className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-green-600"
-                                                            onClick={() => handleTogglePause(user)}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div title="Pause User">
-                                                        <Pause
-                                                            className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-orange-600"
-                                                            onClick={() => handleTogglePause(user)}
-                                                        />
-                                                    </div>
-                                                )}
                                                 <Trash
                                                     className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-red-600"
                                                     onClick={(e) => {

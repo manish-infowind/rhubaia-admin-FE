@@ -468,7 +468,8 @@ export const tableConfig = [
   { label: "Email", sortKey: "email" },
   { label: "Account Status", sortKey: "accountStatusName" },
   { label: "Gender", sortKey: "gender" },
-  { label: "Paused", sortKey: "isAccountPaused" },
+  { label: "Paused", sortKey: null },
+  { label: "Is Deleted", sortKey: null },
   { label: "Actions", sortKey: null },
 ];
 
