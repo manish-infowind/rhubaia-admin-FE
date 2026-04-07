@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Shield, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRoles, useRolePermissions, roleKeys } from "@/api/hooks/useRoles";
+import { usePermissions } from "@/api/hooks/usePermissions";
 import { Role, UpdateRoleRequest } from "@/api/types";
 import { RolePermissionsDialog } from "./RolePermissionsDialog";
 import PermissionCards from "../common/PermissionCards";
@@ -32,7 +33,11 @@ export function RoleEditDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { updateRole, isUpdatingRole } = useRoles();
-  const { rolePermissions } = useRolePermissions(role?.id);
+  const shouldFetchForEdit = Boolean(isOpen && role?.id);
+  usePermissions({ enabled: shouldFetchForEdit });
+  const { refetch: refetchRolePermissions } = useRolePermissions(role?.id, {
+    enabled: shouldFetchForEdit,
+  });
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
@@ -52,6 +57,12 @@ export function RoleEditDialog({
       });
     }
   }, [role]);
+
+  useEffect(() => {
+    if (isOpen && activeTab === "permissions" && role?.id) {
+      refetchRolePermissions();
+    }
+  }, [activeTab, isOpen, role?.id, refetchRolePermissions]);
 
   const handleSave = () => {
     if (!role) return;

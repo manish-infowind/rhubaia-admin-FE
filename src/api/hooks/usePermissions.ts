@@ -16,7 +16,7 @@ export const permissionKeys = {
   detail: (adminId: string) => [...permissionKeys.details(), adminId] as const,
 };
 
-export const usePermissions = () => {
+export const usePermissions = (options?: { enabled?: boolean }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -24,6 +24,7 @@ export const usePermissions = () => {
   const { data: permissions, isLoading: isLoadingPermissions, error: permissionsError } = useQuery({
     queryKey: permissionKeys.list(),
     queryFn: () => PermissionService.getAllPermissions(),
+    enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

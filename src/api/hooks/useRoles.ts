@@ -206,13 +206,18 @@ export const useAdminRoles = (adminId: string) => {
 };
 
 // Hook to get permissions for a specific role
-export const useRolePermissions = (roleId: string | number | null | undefined) => {
+export const useRolePermissions = (
+  roleId: string | number | null | undefined,
+  options?: { enabled?: boolean }
+) => {
   const { toast } = useToast();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: roleKeys.rolePermissions(String(roleId ?? "")),
     queryFn: () => RoleService.getRolePermissions(String(roleId)),
-    enabled: Boolean(roleId && String(roleId).trim().length > 0),
+    enabled:
+      (options?.enabled ?? true) &&
+      Boolean(roleId && String(roleId).trim().length > 0),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
@@ -221,6 +226,7 @@ export const useRolePermissions = (roleId: string | number | null | undefined) =
     rolePermissions: data?.data,
     isLoading,
     error,
+    refetch,
   };
 };
 

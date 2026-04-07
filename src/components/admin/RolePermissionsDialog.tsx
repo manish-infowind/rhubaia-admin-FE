@@ -28,6 +28,12 @@ interface PermissionState {
   };
 }
 
+type RolePermissionApiItem = {
+  permissionName: string;
+  roleAllowedActions?: string[] | null;
+  isAssigned?: boolean;
+};
+
 interface RolePermissionsDialogProps {
   roleId: string | number | null;
   roleName: string;
@@ -43,8 +49,13 @@ export function RolePermissionsDialog({
 }: RolePermissionsDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { permissions, isLoadingPermissions } = usePermissions();
-  const { rolePermissions, isLoading: isLoadingRolePermissions } = useRolePermissions(roleId);
+  const shouldFetchPermissionsData = Boolean(isOpen && roleId);
+  const { permissions, isLoadingPermissions } = usePermissions({
+    enabled: shouldFetchPermissionsData,
+  });
+  const { rolePermissions, isLoading: isLoadingRolePermissions } = useRolePermissions(roleId, {
+    enabled: shouldFetchPermissionsData,
+  });
   const { assignPermissionsToRole, isAssigningPermissionsToRole } = useRoles();
 
   const [permissionStates, setPermissionStates] = useState<PermissionState[]>([]);
@@ -53,29 +64,34 @@ export function RolePermissionsDialog({
   // Initialize permission states when permissions and role permissions are loaded
   useEffect(() => {
     if (!isLoadingPermissions && !isLoadingRolePermissions && permissions.length > 0 && !isInitialized) {
-      const currentPermissions = rolePermissions?.permissions || [];
+      const currentPermissions = (rolePermissions?.permissions || []) as RolePermissionApiItem[];
+      const isAssignedOnlyResponse =
+        currentPermissions.length > 0 && currentPermissions.length < permissions.length;
       
       const states: PermissionState[] = permissions.map((perm: Permission) => {
         const current = currentPermissions.find(
           (p: any) => p.permissionName === perm.permissionName
         );
-        
+
+        // Backend may return full permission catalog in rolePermissions.
+        // Treat as assigned only when explicitly marked OR role actions are non-empty.
+        const isAssigned =
+          (isAssignedOnlyResponse && !!current) ||
+          current?.isAssigned === true ||
+          (Array.isArray(current?.roleAllowedActions) && current.roleAllowedActions.length > 0);
+
         // Get permission's maximum allowed actions
         const permissionMaxActions = perm.allowedActions || ['create', 'read', 'update', 'delete'];
-        
-        // Get role's currently granted actions (from rolePermissions response)
-        // If roleAllowedActions is null, it means all actions from permission are granted
-        const roleGrantedActions = current?.roleAllowedActions;
-        const isAllGranted = roleGrantedActions === null || (Array.isArray(roleGrantedActions) && roleGrantedActions.length === 0);
-        
-        // If all granted or no current assignment, use permission max actions
-        const effectiveActions = isAllGranted 
-          ? permissionMaxActions 
-          : (roleGrantedActions || []);
+
+        // Preload only explicitly assigned action arrays.
+        const roleGrantedActions = Array.isArray(current?.roleAllowedActions) ? current.roleAllowedActions : [];
+        const effectiveActions = isAssigned
+          ? (roleGrantedActions.length > 0 ? roleGrantedActions : permissionMaxActions)
+          : [];
         
         return {
           permissionName: perm.permissionName,
-          selected: !!current,
+          selected: isAssigned,
           permissionMaxActions: permissionMaxActions,
           crud: {
             create: effectiveActions.includes('create'),
@@ -156,7 +172,8 @@ export function RolePermissionsDialog({
   const handleSave = () => {
     if (!roleId) return;
 
-    // Filter only selected permissions
+    // Include only explicitly selected permissions with at least one action.
+    // This prevents sending every permission when the backend response contains full catalog entries.
     const selectedPermissions = permissionStates
       .filter((p) => p.selected)
       .map((p) => {
@@ -166,20 +183,16 @@ export function RolePermissionsDialog({
         if (p.crud.update) crud.push("update");
         if (p.crud.delete) crud.push("delete");
 
-        // Check if all permission max actions are selected
-        const allMaxActionsSelected = p.permissionMaxActions.every(action => 
-          p.crud[action as keyof typeof p.crud]
-        );
-        
-        // If all max actions are selected OR no actions are selected,
-        // send empty array (means all actions from permission)
-        // Otherwise, send the selected actions
-        const noActionsSelected = crud.length === 0;
+        if (crud.length === 0) {
+          return null;
+        }
+
         return {
           permissionName: p.permissionName,
-          crud: (allMaxActionsSelected || noActionsSelected) ? [] : crud,
+          crud,
         };
-      });
+      })
+      .filter((p): p is { permissionName: string; crud: string[] } => p !== null);
 
     const requestData: AssignPermissionsToRoleRequest = {
       roleId,
@@ -277,14 +290,10 @@ export function RolePermissionsDialog({
                         {(() => {
                           const checkedCount = Object.values(state.crud).filter(Boolean).length;
                           const maxCount = state.permissionMaxActions.length;
-                          const allChecked = checkedCount === maxCount && maxCount === 4;
-                          
-                          if (allChecked || checkedCount === 0) {
+                          if (checkedCount === 0) {
                             return (
                               <p className="text-xs text-muted-foreground ml-2">
-                                {checkedCount === 0 
-                                  ? "(Empty selection = All actions from permission will be granted)"
-                                  : "All allowed actions selected"}
+                                At least one action must be selected to include this permission.
                               </p>
                             );
                           }

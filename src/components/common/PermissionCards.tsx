@@ -2,6 +2,7 @@ import PageLoader from "./PageLoader";
 import { Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRolePermissions } from "@/api";
+import { usePermissions } from "@/api/hooks/usePermissions";
 import { Role } from "@/api/types";
 
 interface PermissionCardProps {
@@ -10,7 +11,22 @@ interface PermissionCardProps {
 };
 
 const PermissionCards = ({ role, keyName }: PermissionCardProps) => {
-    const { rolePermissions, isLoading } = useRolePermissions(role?.id || 0);
+    const { rolePermissions, isLoading } = useRolePermissions(role?.id || 0, {
+        enabled: Boolean(role?.id),
+    });
+    const { permissions } = usePermissions({ enabled: Boolean(role?.id) });
+
+    const allRolePermissions = rolePermissions?.permissions || [];
+    const isAssignedOnlyResponse =
+        allRolePermissions.length > 0 &&
+        allRolePermissions.length < (permissions?.length || Number.MAX_SAFE_INTEGER);
+
+    const assignedPermissions = isAssignedOnlyResponse
+        ? allRolePermissions
+        : allRolePermissions.filter((perm: any) =>
+            perm?.isAssigned === true ||
+            (Array.isArray(perm?.roleAllowedActions) && perm.roleAllowedActions.length > 0)
+        );
 
     return (
         <div className="border-t pt-4">
@@ -19,9 +35,9 @@ const PermissionCards = ({ role, keyName }: PermissionCardProps) => {
                 <div className="flex items-center justify-center py-8">
                     <PageLoader pagename="permissions" />
                 </div>
-            ) : rolePermissions?.permissions && rolePermissions.permissions.length > 0 ? (
+            ) : assignedPermissions.length > 0 ? (
                 <div className="space-y-3">
-                    {rolePermissions.permissions.map((perm: any) => (
+                    {assignedPermissions.map((perm: any) => (
                         <div
                             key={perm.id || perm.permissionName}
                             className="border rounded-lg p-4 space-y-2"

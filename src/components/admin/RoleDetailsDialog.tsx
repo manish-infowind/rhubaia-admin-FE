@@ -24,7 +24,9 @@ export function RoleDetailsDialog({
   onClose,
   onEdit,
 }: RoleDetailsDialogProps) {
-  const { rolePermissions, isLoading } = useRolePermissions(role?.id);
+  const { rolePermissions, isLoading } = useRolePermissions(role?.id, {
+    enabled: Boolean(isOpen && role?.id),
+  });
 
   if (!role) return null;
 

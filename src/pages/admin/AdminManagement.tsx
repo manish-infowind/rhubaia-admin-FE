@@ -46,7 +46,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminManagement } from "@/api/hooks/useAdminManagement";
 import { AdminUser, CreateAdminRequest, UpdateAdminRequest, ChangePasswordRequest } from "@/api/types";
 import { format } from "date-fns";
-import { useRoles, useAdminRoles } from "@/api/hooks/useRoles";
+import { useRoles, useAdminRoles, useRolePermissions } from "@/api/hooks/useRoles";
 import { usePermissions, useAdminPermissions } from "@/api/hooks/usePermissions";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -104,6 +104,14 @@ export default function AdminManagement() {
   // Fetch current admin roles and permissions when editing
   const { adminRoles, isLoading: isLoadingAdminRoles } = useAdminRoles(selectedAdmin?.id || '');
   const { adminPermissions, isLoading: isLoadingAdminPermissions } = useAdminPermissions(selectedAdmin?.id || '');
+  const { rolePermissions: editRolePermissions, isLoading: isLoadingEditRolePermissions } = useRolePermissions(
+    isEditModalOpen ? editSelectedRoleId : null
+  );
+
+  const viewRoleId = isViewModalOpen
+    ? (selectedAdmin?.roles?.[0]?.id ?? adminRoles?.roles?.[0]?.id ?? null)
+    : null;
+  const { rolePermissions: viewRolePermissions, isLoading: isLoadingViewRolePermissions } = useRolePermissions(viewRoleId);
 
   // Password change form (for admin management, we don't need currentPassword)
   const [passwordData, setPasswordData] = useState<{
@@ -591,6 +599,31 @@ export default function AdminManagement() {
         <ShieldX className="h-3 w-3 mr-1" />
         Inactive
       </Badge>
+    );
+  };
+
+  const formatRolePermissionActions = (actions: string[] | null | undefined) => {
+    if (!actions || actions.length === 0) return "Not assigned";
+    return actions.join(", ");
+  };
+
+  const getAssignedRolePermissions = (
+    permissionsList: Array<{
+      permissionName: string;
+      roleAllowedActions?: string[] | null;
+      isAssigned?: boolean;
+    }> | undefined
+  ) => {
+    if (!permissionsList) return [];
+    const isAssignedOnlyResponse =
+      permissionsList.length > 0 &&
+      permissionsList.length < (permissions?.length || Number.MAX_SAFE_INTEGER);
+    if (isAssignedOnlyResponse) {
+      return permissionsList;
+    }
+    return permissionsList.filter((permission) =>
+      permission.isAssigned === true ||
+      (Array.isArray(permission.roleAllowedActions) && permission.roleAllowedActions.length > 0)
     );
   };
 
@@ -1236,6 +1269,30 @@ export default function AdminManagement() {
                     <p className="text-xs text-muted-foreground">
                       Select a role to assign all permissions from that role
                     </p>
+                    {editSelectedRoleId && (
+                      <div className="mt-3 p-3 rounded-md border bg-muted/20 space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Assigned permissions for selected role
+                        </p>
+                        {isLoadingEditRolePermissions ? (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Loading role permissions...
+                          </div>
+                        ) : getAssignedRolePermissions(editRolePermissions?.permissions).length > 0 ? (
+                          <div className="max-h-28 overflow-y-auto space-y-1">
+                            {getAssignedRolePermissions(editRolePermissions?.permissions).map((p, idx) => (
+                              <div key={`${p.permissionName}-${idx}`} className="text-xs">
+                                <span className="font-medium">{p.permissionName}</span>
+                                <span className="text-muted-foreground"> - {formatRolePermissionActions(p.roleAllowedActions)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">No permissions assigned to this role.</p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Individual Permissions */}
@@ -1584,6 +1641,40 @@ export default function AdminManagement() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Assigned permissions through role */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
+                    Assigned Permissions (via Role)
+                  </h3>
+                  {isLoadingViewRolePermissions ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading role permissions...
+                    </div>
+                  ) : getAssignedRolePermissions(viewRolePermissions?.permissions).length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {getAssignedRolePermissions(viewRolePermissions?.permissions).map((permission, idx) => (
+                        <div
+                          key={`${permission.permissionName}-${idx}`}
+                          className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                        >
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-blue-800 break-words">
+                              {permission.permissionName}
+                            </p>
+                            <p className="text-xs text-blue-700 mt-1">
+                              Actions: {formatRolePermissionActions(permission.roleAllowedActions)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No role permissions available.</p>
+                  )}
                 </div>
 
                 {/* Action Buttons */}
