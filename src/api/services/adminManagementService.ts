@@ -1,6 +1,15 @@
-import { apiClient } from '../client';
-import { API_CONFIG } from '../config';
-import { ApiResponse, AdminUser, CreateAdminRequest, UpdateAdminRequest, ChangePasswordRequest, AdminListResponse, AdminStats, QueryParams } from '../types';
+import { apiClient } from "../client";
+import { API_CONFIG } from "../config";
+import {
+  ApiResponse,
+  AdminUser,
+  CreateAdminRequest,
+  UpdateAdminRequest,
+  ChangePasswordRequest,
+  AdminListResponse,
+  AdminStats,
+  QueryParams,
+} from "../types";
 
 type AdminApiRole = {
   id: number;
@@ -21,7 +30,7 @@ type AdminApiItem = {
   name?: string;
   lastName?: string;
   last_name?: string;
-  role?: 'admin' | 'super_admin';
+  role?: "admin" | "super_admin";
   phone?: string;
   countryCode?: string;
   country_code?: string;
@@ -80,36 +89,41 @@ type CreateAdminApiRequest = {
 const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
   const normalizedRoles = (admin.roles || []).map((role) => ({
     id: role.id,
-    roleName: role.roleName ?? role.role_name ?? '',
+    roleName: role.roleName ?? role.role_name ?? "",
     description: role.description,
   }));
 
   const inferredRoleFromRoles = normalizedRoles[0]?.roleName?.toLowerCase();
   const derivedRole =
     admin.role ??
-    (admin.isSuperAdmin ?? admin.is_super_admin
-      ? 'super_admin'
-      : inferredRoleFromRoles === 'super_admin'
-        ? 'super_admin'
-        : 'admin');
+    ((admin.isSuperAdmin ?? admin.is_super_admin)
+      ? "super_admin"
+      : inferredRoleFromRoles === "super_admin"
+        ? "super_admin"
+        : "admin");
 
-  const rawFullName = admin.fullName ?? admin.full_name ?? admin.name ?? '';
-  const parsedNameParts = String(rawFullName).trim().split(/\s+/).filter(Boolean);
-  const parsedFirstName = parsedNameParts[0] ?? '';
-  const parsedLastName = parsedNameParts.slice(1).join(' ');
+  const rawFullName = admin.fullName ?? admin.full_name ?? admin.name ?? "";
+  const parsedNameParts = String(rawFullName)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const parsedFirstName = parsedNameParts[0] ?? "";
+  const parsedLastName = parsedNameParts.slice(1).join(" ");
   const finalFirstName = admin.firstName ?? admin.first_name ?? parsedFirstName;
   const finalLastName = admin.lastName ?? admin.last_name ?? parsedLastName;
-  const fullName = `${finalFirstName || ''} ${finalLastName || ''}`.trim() || String(admin.email || '');
+  const fullName =
+    `${finalFirstName || ""} ${finalLastName || ""}`.trim() ||
+    String(admin.email || "");
 
   return {
-    id: admin.id ?? admin.uuid ?? '',
+    id: admin.id ?? admin.uuid ?? "",
     username: admin.username,
     email: admin.email,
     firstName: finalFirstName,
     lastName: finalLastName,
     fullName,
     role: derivedRole,
-    phone: admin.phone ?? '',
+    phone: admin.phone ?? "",
     countryCode: admin.countryCode ?? admin.country_code,
     location: admin.location ?? null,
     bio: admin.bio ?? null,
@@ -119,8 +133,8 @@ const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
     permissions: admin.permissions ?? [],
     roles: normalizedRoles,
     lastLogin: admin.lastLogin ?? admin.otp_expired_on ?? null,
-    createdAt: admin.createdAt ?? admin.created_at ?? '',
-    updatedAt: admin.updatedAt ?? admin.updated_at ?? '',
+    createdAt: admin.createdAt ?? admin.created_at ?? "",
+    updatedAt: admin.updatedAt ?? admin.updated_at ?? "",
   };
 };
 
@@ -133,7 +147,8 @@ const normalizeAdminListResponse = (
 
   const rawItems = response.data.items ?? response.data.data ?? [];
   const rawPagination = response.data.pagination;
-  const totalPages = rawPagination?.totalPages ?? rawPagination?.total_pages ?? 1;
+  const totalPages =
+    rawPagination?.totalPages ?? rawPagination?.total_pages ?? 1;
 
   return {
     ...response,
@@ -144,8 +159,10 @@ const normalizeAdminListResponse = (
         limit: rawPagination?.limit ?? 10,
         total: rawPagination?.total ?? rawItems.length,
         totalPages,
-        hasNextPage: rawPagination?.hasNextPage ?? ((rawPagination?.page ?? 1) < totalPages),
-        hasPrevPage: rawPagination?.hasPrevPage ?? ((rawPagination?.page ?? 1) > 1),
+        hasNextPage:
+          rawPagination?.hasNextPage ?? (rawPagination?.page ?? 1) < totalPages,
+        hasPrevPage:
+          rawPagination?.hasPrevPage ?? (rawPagination?.page ?? 1) > 1,
       },
     },
   };
@@ -173,19 +190,21 @@ const normalizeAdminStatsResponse = (
 
 export class AdminManagementService {
   // Get all admins with pagination and filters
-  static async getAdmins(params?: QueryParams): Promise<ApiResponse<AdminListResponse>> {
+  static async getAdmins(
+    params?: QueryParams,
+  ): Promise<ApiResponse<AdminListResponse>> {
     try {
       const searchParams = new URLSearchParams();
-      
+
       if (params) {
         Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
+          if (value !== undefined && value !== null && value !== "") {
             searchParams.append(key, String(value));
           }
         });
       }
 
-      const url = `${API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.LIST}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+      const url = `${API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.LIST}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       const response = await apiClient.get<AdminListApiResponse>(url);
       return normalizeAdminListResponse(response);
     } catch (error) {
@@ -197,7 +216,7 @@ export class AdminManagementService {
   static async getAdminStats(): Promise<ApiResponse<AdminStats>> {
     try {
       const response = await apiClient.get<AdminStatsApiResponse>(
-        API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.STATS
+        API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.STATS,
       );
       return normalizeAdminStatsResponse(response);
     } catch (error) {
@@ -208,7 +227,10 @@ export class AdminManagementService {
   // Get single admin details
   static async getAdmin(id: string): Promise<ApiResponse<AdminUser>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.DETAILS.replace(':id', id);
+      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.DETAILS.replace(
+        ":id",
+        id,
+      );
       const response = await apiClient.get<AdminUser>(url);
       return response;
     } catch (error) {
@@ -217,19 +239,21 @@ export class AdminManagementService {
   }
 
   // Create new admin
-  static async createAdmin(data: CreateAdminRequest): Promise<ApiResponse<AdminUser>> {
+  static async createAdmin(
+    data: CreateAdminRequest,
+  ): Promise<ApiResponse<AdminUser>> {
     try {
       const payload: CreateAdminApiRequest = {
         email: data.email,
         password: data.password,
         first_name: data.firstName || undefined,
         last_name: data.lastName || undefined,
-        is_super_admin: data.role === 'super_admin',
+        is_super_admin: data.role === "super_admin",
       };
 
       const response = await apiClient.post<AdminUser>(
         API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.CREATE,
-        payload
+        payload,
       );
       return response;
     } catch (error) {
@@ -238,9 +262,15 @@ export class AdminManagementService {
   }
 
   // Update admin
-  static async updateAdmin(id: string, data: UpdateAdminRequest): Promise<ApiResponse<AdminUser>> {
+  static async updateAdmin(
+    id: string,
+    data: UpdateAdminRequest,
+  ): Promise<ApiResponse<AdminUser>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.UPDATE.replace(':id', id);
+      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.UPDATE.replace(
+        ":id",
+        id,
+      );
       const response = await apiClient.put<AdminUser>(url, data);
       return response;
     } catch (error) {
@@ -251,7 +281,10 @@ export class AdminManagementService {
   // Delete admin
   static async deleteAdmin(id: string): Promise<ApiResponse<void>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.DELETE.replace(':id', id);
+      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.DELETE.replace(
+        ":id",
+        id,
+      );
       const response = await apiClient.delete<void>(url);
       return response;
     } catch (error) {
@@ -262,7 +295,10 @@ export class AdminManagementService {
   // Toggle admin status (activate/deactivate)
   static async toggleAdminStatus(id: string): Promise<ApiResponse<AdminUser>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.TOGGLE_STATUS.replace(':id', id);
+      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.TOGGLE_STATUS.replace(
+        ":id",
+        id,
+      );
       const response = await apiClient.put<AdminUser>(url);
       return response;
     } catch (error) {
@@ -271,13 +307,19 @@ export class AdminManagementService {
   }
 
   // Change admin password
-  static async changeAdminPassword(id: string, data: ChangePasswordRequest): Promise<ApiResponse<void>> {
+  static async changeAdminPassword(
+    id: string,
+    data: ChangePasswordRequest,
+  ): Promise<ApiResponse<void>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.CHANGE_PASSWORD.replace(':id', id);
+      const url = API_CONFIG.ENDPOINTS.ADMIN_MANAGEMENT.CHANGE_PASSWORD.replace(
+        ":id",
+        id,
+      );
       const response = await apiClient.put<void>(url, data);
       return response;
     } catch (error) {
       throw error;
     }
   }
-} 
+}
