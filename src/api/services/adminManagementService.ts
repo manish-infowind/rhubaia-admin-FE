@@ -46,6 +46,8 @@ type AdminApiItem = {
   isSuperAdmin?: boolean;
   is_super_admin?: boolean;
   lastLogin?: string | null;
+  last_login_at?: string | null;
+  is_online?: boolean;
   otp_expired_on?: string | null;
   createdAt?: string;
   created_at?: string;
@@ -132,7 +134,7 @@ const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
     twoFactorEnabled: admin.twoFactorEnabled ?? false,
     permissions: admin.permissions ?? [],
     roles: normalizedRoles,
-    lastLogin: admin.lastLogin ?? admin.otp_expired_on ?? null,
+    lastLogin: admin.lastLogin ?? admin.last_login_at ?? admin.otp_expired_on ?? null,
     createdAt: admin.createdAt ?? admin.created_at ?? "",
     updatedAt: admin.updatedAt ?? admin.updated_at ?? "",
   };

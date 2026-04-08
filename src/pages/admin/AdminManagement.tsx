@@ -52,7 +52,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
-import { activeList, roleList } from "@/api/mockData";
+import { activeList, roleList } from "@/constants/uiLists";
 import { canManageAdminUsers } from "@/lib/permissions";
 
 export default function AdminManagement() {
@@ -72,7 +72,6 @@ export default function AdminManagement() {
 
   // Form states for create/edit
   const [formData, setFormData] = useState<CreateAdminRequest>({
-    username: "",
     email: "",
     password: "",
     firstName: "",
@@ -267,7 +266,7 @@ export default function AdminManagement() {
   // Handle create admin
   const handleCreateAdmin = async () => {
     // Validate required fields
-    if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -357,7 +356,6 @@ export default function AdminManagement() {
           // Reset form
           setIsCreateModalOpen(false);
           setFormData({
-            username: "",
             email: "",
             password: "",
             firstName: "",
@@ -499,7 +497,6 @@ export default function AdminManagement() {
   const openEditModal = (admin: AdminUser) => {
     setSelectedAdmin(admin);
     setFormData({
-      username: admin.username || admin.email.split('@')[0],
       email: admin.email,
       password: "",
       firstName: admin.firstName,
@@ -523,7 +520,6 @@ export default function AdminManagement() {
 
     setFormData((prev) => ({
       ...prev,
-      username: selectedAdmin.username || selectedAdmin.email.split('@')[0],
       email: selectedAdmin.email,
       password: "",
       firstName: selectedAdmin.firstName || "",
@@ -695,7 +691,6 @@ export default function AdminManagement() {
     setIsCreateModalOpen(false);
     setIsEditModalOpen(false);
     setFormData({
-      username: "",
       email: "",
       password: "",
       firstName: "",
@@ -775,26 +770,15 @@ export default function AdminManagement() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Username *</label>
-                  <Input
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    placeholder="Enter username"
-                    className="h-10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Email *</label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Enter email"
-                    className="h-10"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Email *</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="Enter email"
+                  className="h-10"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
@@ -1020,7 +1004,7 @@ export default function AdminManagement() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search admins by name, email, or username..."
+                placeholder="Search admins by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -1089,7 +1073,6 @@ export default function AdminManagement() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
-                        <TableHead>Username</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Created</TableHead>
@@ -1111,7 +1094,6 @@ export default function AdminManagement() {
                               {admin.firstName} {admin.lastName}
                             </TableCell>
                             <TableCell>{admin.email}</TableCell>
-                            <TableCell>@{admin.username || admin.email.split('@')[0]}</TableCell>
                             <TableCell>{getRoleBadge(admin)}</TableCell>
                             <TableCell>{getStatusBadge(admin.isActive)}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
@@ -1637,9 +1619,6 @@ export default function AdminManagement() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold">{selectedAdmin.firstName} {selectedAdmin.lastName}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      @{selectedAdmin.username || selectedAdmin.email.split('@')[0]}
-                    </p>
                     <p className="text-sm text-muted-foreground">
                       {selectedAdmin.email}
                     </p>

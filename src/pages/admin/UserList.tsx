@@ -33,7 +33,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import PageHeader from "@/components/common/PageHeader";
-import { statusList, tableConfig } from "@/api/mockData";
+import { statusList, tableConfig } from "@/constants/uiLists";
 import PageLoader from "@/components/common/PageLoader";
 import RetryPage from "@/components/common/RetryPage";
 import { useSelector } from "react-redux";

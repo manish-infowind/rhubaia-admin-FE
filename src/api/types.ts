@@ -329,7 +329,6 @@ export interface AdminUser {
 }
 
 export interface CreateAdminRequest {
-  username: string;
   email: string;
   password: string;
   firstName: string;

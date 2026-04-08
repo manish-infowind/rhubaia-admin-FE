@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { API_CONFIG, HTTP_STATUS, API_ERROR_TYPES } from './config';
 import { ApiResponse, ApiError, ApiRequestOptions } from './types';
-import { getMockResponse } from './mockService';
 import { AUTH_LOGOUT_EVENT, authStorage } from '@/lib/authStorage';
 
 class ApiClient {
@@ -190,48 +189,7 @@ class ApiClient {
       signal,
     } = options;
 
-    // Skip mock responses for roles, permissions, admin management, and auth - use real APIs
-    // Keep mock service for user/profile endpoints for testing
-    const skipMockEndpoints = [
-      '/login',
-      '/forgot-password',
-      '/reset-password',
-      '/change-password',
-      '/users',
-      '/permissions',
-      '/roles',
-      '/admins',
-      '/admin-management',
-      '/roles/assign',
-      '/permissions/assign',
-      '/roles/create',
-      '/permissions/create',
-      '/roles/permissions',
-      '/admins/',
-    ];
-    
-    // Normalize endpoint for comparison (remove base URL and query params)
-    const normalizedEndpoint = endpoint.replace(this.baseURL, '').split('?')[0];
-    
-    // Don't skip if it's an admin-profile endpoint - keep mock for testing
-    // Check if it's a profile endpoint (with or without query params)
-    const isAdminProfileEndpoint = normalizedEndpoint.includes('/admin-profile') || 
-                                  normalizedEndpoint === '/admin-profile' ||
-                                  normalizedEndpoint.startsWith('/admin-profile');
-    
-    const shouldSkipMock = !isAdminProfileEndpoint && skipMockEndpoints.some(skipEndpoint => 
-      normalizedEndpoint.includes(skipEndpoint) || endpoint.includes(skipEndpoint)
-    );
-    
-    if (!shouldSkipMock) {
-      // Try to get mock response first for other endpoints
-      // Extract params from URL if present
-      const urlParams = endpoint.includes('?') ? new URLSearchParams(endpoint.split('?')[1]) : undefined;
-      const mockResponse = await getMockResponse<T>(endpoint, method, body, urlParams);
-      if (mockResponse !== null) {
-        return mockResponse;
-      }
-    }
+    // Mock layer removed: always call real backend APIs.
 
     const config: AxiosRequestConfig = {
       method,
