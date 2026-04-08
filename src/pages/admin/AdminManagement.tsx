@@ -1071,6 +1071,7 @@ export default function AdminManagement() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Avatar</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
@@ -1090,6 +1091,22 @@ export default function AdminManagement() {
                       ) : (
                         (admins as AdminUser[]).map((admin) => (
                           <TableRow key={admin.id}>
+                            <TableCell>
+                              {admin.profilePic ? (
+                                <img
+                                  src={admin.profilePic}
+                                  alt={`${admin.firstName} ${admin.lastName}`}
+                                  className="h-9 w-9 rounded-full object-cover border"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-9 w-9 rounded-full bg-brand-green/15 text-brand-green flex items-center justify-center font-semibold border">
+                                  {`${admin.firstName?.[0] ?? ""}${admin.lastName?.[0] ?? ""}`.toUpperCase() || "A"}
+                                </div>
+                              )}
+                            </TableCell>
                             <TableCell className="font-medium">
                               {admin.firstName} {admin.lastName}
                             </TableCell>
@@ -1649,15 +1666,6 @@ export default function AdminManagement() {
                           </div>
                         </div>
                       )}
-                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <Lock className="h-5 w-5 text-gray-600" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">2FA Status</p>
-                          <p className="text-sm text-gray-600">
-                            {selectedAdmin.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                 </div>
 
