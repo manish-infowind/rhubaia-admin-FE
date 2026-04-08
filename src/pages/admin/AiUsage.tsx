@@ -19,7 +19,7 @@ const parseBooleanFilter = (value: string | null): boolean | null => {
 };
 
 const parseFilters = (params: URLSearchParams): AiUsageFilterState => ({
-  operation: params.get("operation") || undefined,
+  operation: params.get("operation") || "all",
   success: parseBooleanFilter(params.get("success")),
   userId: params.get("userId") || undefined,
   from: params.get("from") || undefined,
@@ -146,11 +146,7 @@ export default function AiUsage() {
     setSearchParams(nextParams, { replace: true });
   };
 
-  useEffect(() => {
-    if (!filters.operation && operations?.items.length) {
-      updateFilters({ operation: operations.items[0].operation });
-    }
-  }, [filters.operation, operations]);
+  // operation defaults to "all" in parseFilters.
 
   const operationLabel = useMemo(() => {
     if (filters.operation === "all") return "All Operations";
