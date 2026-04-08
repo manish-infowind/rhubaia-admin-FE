@@ -33,7 +33,7 @@ const PageHeader = (props) => {
                         </div>
                     </div>
 
-                    {page?.toLowerCase() === "admin" && (
+                    {page?.toLowerCase() === "admin" && typeof openModal === "function" && (
                         <Button className="bg-brand-green hover:bg-brand-green/90 text-white" onClick={openModal}>
                             <UserPlus className="h-4 w-4 mr-2" />
                             Add Admin
@@ -41,7 +41,7 @@ const PageHeader = (props) => {
                     )}
                     {/* create permission button removed */}
                     
-                    {page?.toLowerCase() === "roles" && (
+                    {page?.toLowerCase() === "roles" && typeof openModal === "function" && (
                         <Button className="bg-brand-green hover:bg-brand-green/90 text-white" onClick={openModal}>
                             <Plus className="h-4 w-4 mr-2" />
                             Create Role

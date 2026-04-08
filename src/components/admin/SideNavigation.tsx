@@ -20,27 +20,17 @@ import {
   canManageAdminUsers,
   canManageRoles,
   canManagePermissions,
+  canPerformAction,
 } from "@/lib/permissions";
 import React, { useState, useEffect } from "react";
 
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "System Users",
-    href: "/admin/users",
-    icon: UserCheck,
-  },
-  {
-    name: "AI Usage",
-    href: "/admin/ai-usage",
-    icon: Sparkles,
-  },
-];
+type NavItem = {
+  name: string;
+  href: string;
+  icon: any;
+  canAccess: boolean;
+};
 
 interface SideNavigationProps {
   isOpen: boolean;
@@ -52,6 +42,27 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
   const location = useLocation();
   const loginState = useSelector((state: RootState) => state.auth.loginState);
   const [adminManagementOpen, setAdminManagementOpen] = useState(false);
+
+  const navigation: NavItem[] = [
+    {
+      name: "Dashboard",
+      href: "/admin",
+      icon: LayoutDashboard,
+      canAccess: canPerformAction(loginState as any, "dashboard", "read"),
+    },
+    {
+      name: "System Users",
+      href: "/admin/users",
+      icon: UserCheck,
+      canAccess: canPerformAction(loginState as any, "user_management", "read"),
+    },
+    {
+      name: "AI Usage",
+      href: "/admin/ai-usage",
+      icon: Sparkles,
+      canAccess: canPerformAction(loginState as any, "ai_usage", "read"),
+    },
+  ].filter((item) => item.canAccess);
 
   // Check if user has permission to access admin management
   const hasAdminAccess = canAccessAdminManagement(loginState as any);

@@ -151,7 +151,7 @@ export default function PermissionsManagement() {
     // If all actions are selected, don't send allowedActions (means all allowed)
     const requestData = allowedActions.length < 4 ? { allowedActions } : {};
 
-    updatePermission(permissionToEdit.id, requestData, {
+    updatePermission(Number(permissionToEdit.id), requestData, {
       onSuccess: () => {
         setIsEditDialogOpen(false);
         setPermissionToEdit(null);

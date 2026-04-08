@@ -119,7 +119,7 @@ export interface ChangePasswordResponse {
 
 // Permission Management Types
 export interface Permission {
-  id: number;
+  id: string;
   permissionName: string;
   allowedActions: string[] | null; // null means all actions allowed
 }
@@ -151,7 +151,7 @@ export interface PermissionsListResponse {
 
 export interface AssignPermissionsRequest {
   adminId: string;
-  permissionIds: number[];
+  permissionIds: string[];
 }
 
 export interface AssignPermissionsResponse {
@@ -342,10 +342,10 @@ export interface CreateAdminRequest {
 }
 
 export interface UpdateAdminRequest {
-  firstName?: string;
-  lastName?: string;
-  permissions?: number[];
-  isActive?: boolean;
+  // Backend expects snake_case for admin-management update.
+  first_name?: string;
+  last_name?: string;
+  is_active?: boolean;
   // Note: roleId and permissionIds should be assigned separately after admin update
   // via POST /admin/roles/assign and POST /admin/permissions/assign
 }

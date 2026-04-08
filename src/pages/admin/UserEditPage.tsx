@@ -16,12 +16,17 @@ import { useUserManagement } from "@/api/hooks/useUserManagement";
 import { UpdateUserRequest } from "@/api/types";
 import RetryPage from "@/components/common/RetryPage";
 import PageLoader from "@/components/common/PageLoader";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
+import { canPerformAction } from "@/lib/permissions";
 
 const UserEditPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
     const userId = id || '';
+    const loginState = useSelector((state: RootState) => state.auth.loginState);
+    const canUpdateUsers = canPerformAction(loginState as any, "user_management", "update");
 
     const { useUserDetails, updateUser, isUpdating } = useUserManagement();
     const { data: userResponse, isLoading: isLoadingUser } = useUserDetails(userId);
@@ -99,6 +104,16 @@ const UserEditPage = () => {
         return (
             <RetryPage
                 message="Failed to load user details"
+                btnName="Back to Users"
+                onRetry={handleCancel}
+            />
+        );
+    }
+
+    if (!canUpdateUsers) {
+        return (
+            <RetryPage
+                message="Access denied. You don't have permission to update system users."
                 btnName="Back to Users"
                 onRetry={handleCancel}
             />

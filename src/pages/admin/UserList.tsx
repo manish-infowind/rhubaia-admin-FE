@@ -36,6 +36,9 @@ import PageHeader from "@/components/common/PageHeader";
 import { statusList, tableConfig } from "@/api/mockData";
 import PageLoader from "@/components/common/PageLoader";
 import RetryPage from "@/components/common/RetryPage";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
+import { canPerformAction } from "@/lib/permissions";
 
 // Helper function to format gender
 const formatGender = (gender: 'm' | 'f' | 'o'): string => {
@@ -49,6 +52,10 @@ const formatGender = (gender: 'm' | 'f' | 'o'): string => {
 
 const UsersList = () => {
     const navigate = useNavigate();
+    const loginState = useSelector((state: RootState) => state.auth.loginState);
+    const canReadUsers = canPerformAction(loginState as any, "user_management", "read");
+    const canUpdateUsers = canPerformAction(loginState as any, "user_management", "update");
+    const canDeleteUsers = canPerformAction(loginState as any, "user_management", "delete");
 
     // Filters and search
     const [searchText, setSearchText] = useState("");
@@ -231,6 +238,16 @@ const UsersList = () => {
         );
     }
 
+    if (!canReadUsers) {
+        return (
+            <RetryPage
+                message="Access denied. You don't have permission to view system users."
+                btnName="Back"
+                onRetry={() => navigate("/admin")}
+            />
+        );
+    }
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -341,17 +358,21 @@ const UsersList = () => {
                                                     className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-blue-600"
                                                     onClick={() => handleViewUser(user)}
                                                 />
-                                                <Pencil
-                                                    className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-amber-600"
-                                                    onClick={() => handleEditUser(user)}
-                                                />
-                                                <Trash
-                                                    className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-red-600"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openDeleteDialog(user);
-                                                    }}
-                                                />
+                                                {canUpdateUsers && (
+                                                    <Pencil
+                                                        className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-amber-600"
+                                                        onClick={() => handleEditUser(user)}
+                                                    />
+                                                )}
+                                                {canDeleteUsers && (
+                                                    <Trash
+                                                        className="h-5 w-5 cursor-pointer text-muted-foreground hover:text-red-600"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteDialog(user);
+                                                        }}
+                                                    />
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

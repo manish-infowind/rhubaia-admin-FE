@@ -14,7 +14,7 @@ import {
 } from '../types';
 
 type PermissionApiItem = {
-  id: number;
+  id: string;
   permissionName?: string;
   permission_name?: string;
   description?: string;

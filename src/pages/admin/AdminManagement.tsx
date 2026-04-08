@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, XCircle } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import { activeList, roleList } from "@/api/mockData";
+import { canManageAdminUsers } from "@/lib/permissions";
 
 export default function AdminManagement() {
   const loginState = useSelector((state: RootState) => state.auth.loginState);
@@ -83,11 +84,11 @@ export default function AdminManagement() {
 
   // Role and permission selection (separate from formData)
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
-  const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([]);
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>([]);
 
   // Edit mode: selected roles and permissions
   const [editSelectedRoleId, setEditSelectedRoleId] = useState<string | null>(null);
-  const [editSelectedPermissionIds, setEditSelectedPermissionIds] = useState<number[]>([]);
+  const [editSelectedPermissionIds, setEditSelectedPermissionIds] = useState<string[]>([]);
 
   // Password validation state
   const [passwordErrors, setPasswordErrors] = useState({
@@ -113,6 +114,30 @@ export default function AdminManagement() {
     : null;
   const { rolePermissions: viewRolePermissions, isLoading: isLoadingViewRolePermissions } = useRolePermissions(viewRoleId);
 
+  // Lock/unlock "From Role" permissions dynamically based on the currently selected role in the edit modal.
+  // If user clears role selection, these become editable again.
+  const roleDerivedPermissionNames = useMemo(() => {
+    const source =
+      isEditModalOpen && editSelectedRoleId
+        ? (editRolePermissions?.permissions ?? [])
+        : [];
+
+    return new Set<string>(
+      source
+        .filter(
+          (p: any) =>
+            p?.isAssigned === true ||
+            (Array.isArray(p?.roleAllowedActions) && p.roleAllowedActions.length > 0),
+        )
+        .map((p: any) => p.permissionName)
+        .filter(Boolean),
+    );
+  }, [editRolePermissions?.permissions, editSelectedRoleId, isEditModalOpen]);
+
+  const roleDerivedPermissionNamesKey = useMemo(() => {
+    return Array.from(roleDerivedPermissionNames).sort().join("|");
+  }, [roleDerivedPermissionNames]);
+
   // Password change form (for admin management, we don't need currentPassword)
   const [passwordData, setPasswordData] = useState<{
     newPassword: string;
@@ -124,6 +149,10 @@ export default function AdminManagement() {
 
   // Check if current user can access admin management
   const canAccess = canAccessAdminManagement(loginState as any);
+  const canReadAdmins = canManageAdminUsers(loginState as any, "read");
+  const canUpdateAdmins = canManageAdminUsers(loginState as any, "update");
+  const canDeleteAdmins = canManageAdminUsers(loginState as any, "delete");
+  const canCreateAdmins = canManageAdminUsers(loginState as any, "create");
 
   // Use the admin management hook
   const {
@@ -372,56 +401,55 @@ export default function AdminManagement() {
     }
 
     const updateData: UpdateAdminRequest = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      isActive: formData.isActive,
-      permissions: editSelectedPermissionIds,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      is_active: formData.isActive,
     };
 
     // Update admin details first
     updateAdmin({ id: selectedAdmin.id, data: updateData }, {
       onSuccess: async () => {
-        // Assign/update role if selected
-        if (editSelectedRoleId) {
-          // Check if admin already has this role
-          const hasRole = adminRoles?.roles?.some(r => String(r.id) === String(editSelectedRoleId));
-          if (!hasRole) {
-            // Assign new role (this will replace existing roles if backend doesn't support multiple)
-            assignRole(
-              { adminId: String(selectedAdmin.id), roleIds: [String(editSelectedRoleId)] },
-              {
-                onError: (error: any) => {
-                  toast({
-                    title: "Warning",
-                    description: `Admin updated but role assignment failed: ${error?.message || 'Unknown error'}`,
-                    variant: "destructive",
-                  });
+        // IMPORTANT: Always call both APIs with replace semantics.
+        // 1) Assign roles (empty array means clear all roles)
+        // 2) Assign direct permissions (empty array means clear all direct permissions)
+        assignRole(
+          {
+            adminId: String(selectedAdmin.id),
+            roleIds: editSelectedRoleId ? [String(editSelectedRoleId)] : [],
+          },
+          {
+            onSuccess: () => {
+              assignPermissions(
+                {
+                  adminId: String(selectedAdmin.id),
+                  permissionIds: editSelectedPermissionIds,
                 },
-              }
-            );
+                {
+                  onSuccess: () => {
+                    setIsEditModalOpen(false);
+                    setSelectedAdmin(null);
+                    setEditSelectedRoleId(null);
+                    setEditSelectedPermissionIds([]);
+                  },
+                  onError: (error: any) => {
+                    toast({
+                      title: "Warning",
+                      description: `Admin updated but permission assignment failed: ${error?.message || 'Unknown error'}`,
+                      variant: "destructive",
+                    });
+                  },
+                }
+              );
+            },
+            onError: (error: any) => {
+              toast({
+                title: "Warning",
+                description: `Admin updated but role assignment failed: ${error?.message || 'Unknown error'}`,
+                variant: "destructive",
+              });
+            },
           }
-        }
-
-        // Assign/update permissions if selected
-        if (editSelectedPermissionIds.length > 0) {
-          assignPermissions(
-            { adminId: selectedAdmin.id, permissionIds: editSelectedPermissionIds },
-            {
-              onError: (error: any) => {
-                toast({
-                  title: "Warning",
-                  description: `Admin updated but permission assignment failed: ${error?.message || 'Unknown error'}`,
-                  variant: "destructive",
-                });
-              },
-            }
-          );
-        }
-
-        setIsEditModalOpen(false);
-        setSelectedAdmin(null);
-        setEditSelectedRoleId(null);
-        setEditSelectedPermissionIds([]);
+        );
       },
     });
   };
@@ -519,26 +547,29 @@ export default function AdminManagement() {
       return;
     }
 
-    // Fallback: derive selected role from admin record + role list.
-    const roleFromAdmin = (selectedAdmin.role || '').toLowerCase();
-    const matchedRole = roles.find((role) => role.roleName?.toLowerCase() === roleFromAdmin);
-    setEditSelectedRoleId(matchedRole ? String(matchedRole.id) : null);
+    // If admin-role endpoint says no roles, keep selection empty.
+    // Do NOT fall back to selectedAdmin.role because backend can return role="admin"
+    // even when the admin has no RBAC role (direct-permissions-only user).
+    setEditSelectedRoleId(null);
   }, [adminRoles, selectedAdmin, roles]);
 
   // Update edit permission selection when admin permissions are fetched
   useEffect(() => {
     if (selectedAdmin && adminPermissions?.permissions) {
-      // Extract permission IDs from permission names
-      // We need to map permission names to IDs from the permissions list
-      const permissionNames = adminPermissions.permissions.map(p => p.permissionName);
+      // Treat adminPermissions as DIRECT permissions; role-derived permissions are read-only in UI.
+      const directPermissionNames = adminPermissions.permissions
+        .map((p) => p.permissionName)
+        .filter((name) => !roleDerivedPermissionNames.has(name));
+
       const permissionIds = permissions
-        .filter(p => permissionNames.includes(p.permissionName))
-        .map(p => p.id);
+        .filter((p) => directPermissionNames.includes(p.permissionName))
+        .map((p) => String(p.id));
+
       setEditSelectedPermissionIds(permissionIds);
     } else {
       setEditSelectedPermissionIds([]);
     }
-  }, [adminPermissions, selectedAdmin, permissions]);
+  }, [adminPermissions, selectedAdmin, permissions, roleDerivedPermissionNamesKey]);
 
   // Open delete modal
   const openDeleteModal = (admin: AdminUser) => {
@@ -560,10 +591,18 @@ export default function AdminManagement() {
 
   // Get role badge - now uses roleName from roles array
   const getRoleBadge = (admin: AdminUser) => {
-    // Get role name from roles array, fallback to top-level role field if roles array is empty
-    const roleName = admin.roles && admin.roles.length > 0 
-      ? admin.roles[0].roleName 
-      : admin.role;
+    // If no roles are assigned, don't show misleading "Admin".
+    // This can happen when admin has only direct permissions.
+    const hasAssignedRole = Boolean(admin.roles && admin.roles.length > 0);
+    if (!hasAssignedRole) {
+      return (
+        <Badge variant="secondary" className="bg-gray-200 text-gray-800">
+          Direct Permissions
+        </Badge>
+      );
+    }
+
+    const roleName = admin.roles![0].roleName;
     
     // Format role name for display (capitalize first letter of each word)
     const formattedRoleName = roleName
@@ -680,7 +719,7 @@ export default function AdminManagement() {
   };
 
   // If user doesn't have permission, show access denied
-  if (!canAccess) {
+  if (!canAccess || !canReadAdmins) {
     return (
       <div className="flex items-center justify-center py-12">
         <Card className="w-full max-w-md">
@@ -689,7 +728,7 @@ export default function AdminManagement() {
               <ShieldX className="h-12 w-12 mx-auto text-red-500 mb-4" />
               <h3 className="text-lg font-medium mb-2">Access Denied</h3>
               <p className="text-muted-foreground">
-                You don't have permission to access this page. You need "all_allowed" or "admin_management" permission to manage admins.
+                You don't have permission to access this page. You need "admin_management" read access (or "all_allowed") to view admins.
               </p>
             </div>
           </CardContent>
@@ -704,7 +743,7 @@ export default function AdminManagement() {
         page="admin"
         heading="Admin Management"
         subHeading="Manage admin accounts, permissions, and access controls"
-        openModal={openAdminModal}
+        openModal={canCreateAdmins ? openAdminModal : undefined}
       />
 
       <Dialog open={isCreateModalOpen} onOpenChange={handleCreateModalOpenChange}>
@@ -840,12 +879,14 @@ export default function AdminManagement() {
                         >
                           <input
                             type="checkbox"
-                            checked={selectedPermissionIds.includes(permission.id)}
+                            checked={selectedPermissionIds.includes(String(permission.id))}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedPermissionIds([...selectedPermissionIds, permission.id]);
+                                setSelectedPermissionIds([...selectedPermissionIds, String(permission.id)]);
                               } else {
-                                setSelectedPermissionIds(selectedPermissionIds.filter(id => id !== permission.id));
+                                setSelectedPermissionIds(
+                                  selectedPermissionIds.filter((id) => id !== String(permission.id))
+                                );
                               }
                             }}
                             className="rounded border-gray-300"
@@ -1095,10 +1136,12 @@ export default function AdminManagement() {
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => openEditModal(admin)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit Admin
-                                  </DropdownMenuItem>
+                                  {canUpdateAdmins && (
+                                    <DropdownMenuItem onClick={() => openEditModal(admin)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit Admin
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem onClick={() => openPasswordModal(admin)}>
                                     <Lock className="h-4 w-4 mr-2" />
                                     Change Password
@@ -1116,18 +1159,20 @@ export default function AdminManagement() {
                                     )}
                                     {admin.isActive ? "Deactivate" : "Activate"}
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => openDeleteModal(admin)}
-                                    disabled={isDeleting}
-                                    className="text-destructive"
-                                  >
-                                    {isDeleting ? (
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                    )}
-                                    Delete Admin
-                                  </DropdownMenuItem>
+                                  {canDeleteAdmins && (
+                                    <DropdownMenuItem
+                                      onClick={() => openDeleteModal(admin)}
+                                      disabled={isDeleting}
+                                      className="text-destructive"
+                                    >
+                                      {isDeleting ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                      )}
+                                      Delete Admin
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
@@ -1308,21 +1353,37 @@ export default function AdminManagement() {
                         permissions.map((permission) => (
                           <label
                             key={permission.id}
-                            className="flex items-center space-x-2 p-2 border rounded-md hover:bg-gray-50 cursor-pointer"
+                            className={`flex items-center space-x-2 p-2 border rounded-md ${
+                              roleDerivedPermissionNames.has(permission.permissionName)
+                                ? "opacity-60 bg-muted/40 cursor-not-allowed"
+                                : "hover:bg-gray-50 cursor-pointer"
+                            }`}
                           >
                             <input
                               type="checkbox"
-                              checked={editSelectedPermissionIds.includes(permission.id)}
+                              checked={
+                                roleDerivedPermissionNames.has(permission.permissionName) ||
+                                editSelectedPermissionIds.includes(String(permission.id))
+                              }
+                              disabled={roleDerivedPermissionNames.has(permission.permissionName)}
                               onChange={(e) => {
+                                if (roleDerivedPermissionNames.has(permission.permissionName)) return;
                                 if (e.target.checked) {
-                                  setEditSelectedPermissionIds([...editSelectedPermissionIds, permission.id]);
+                                  setEditSelectedPermissionIds([...editSelectedPermissionIds, String(permission.id)]);
                                 } else {
-                                  setEditSelectedPermissionIds(editSelectedPermissionIds.filter(id => id !== permission.id));
+                                  setEditSelectedPermissionIds(
+                                    editSelectedPermissionIds.filter((id) => id !== String(permission.id))
+                                  );
                                 }
                               }}
                               className="rounded border-gray-300"
                             />
                             <span className="text-sm font-medium">{permission.permissionName}</span>
+                            {roleDerivedPermissionNames.has(permission.permissionName) && (
+                              <Badge variant="secondary" className="text-xs">
+                                From Role
+                              </Badge>
+                            )}
                             {permission.allowedActions && permission.allowedActions.length > 0 && (
                               <Badge variant="outline" className="text-xs">
                                 {permission.allowedActions.join(", ")}
