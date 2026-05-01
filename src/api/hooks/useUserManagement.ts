@@ -115,6 +115,7 @@ export const useUserManagement = (params?: UserListParams) => {
       isDeleted,
       createdAt: String(raw?.sign_up_date ?? raw?.createdAt ?? raw?.created_at ?? ''),
       updatedAt: String(raw?.updatedAt ?? raw?.updated_at ?? ''),
+      currentPlan: raw?.current_plan ?? raw?.currentPlan ?? null,
     };
   };
   const parseDobToIso = (dob?: string | null): string | null => {

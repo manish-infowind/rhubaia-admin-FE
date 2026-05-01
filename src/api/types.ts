@@ -806,6 +806,7 @@ export interface UserListItem {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  currentPlan?: string | null;
 }
 
 export interface UserProfile {
@@ -1115,4 +1116,111 @@ export interface ActivityLogsGraphResponse {
   summary: ActivityLogsGraphSummary;
   /** Multi-admin series. If adminId filter is used, this may contain a single series. */
   series: ActivityLogsGraphSeries[];
+}
+
+// Manual Subscription Assignment (Admin)
+export type ManualSubscriptionPlatform = 'ios' | 'android';
+export type ManualSubscriptionMode = 'repair' | 'force';
+
+export interface ManualSubscriptionLookupQuery {
+  userId: string;
+  platform: ManualSubscriptionPlatform;
+  // iOS
+  receiptData?: string;
+  originalTransactionId?: string;
+  productId?: string;
+  // Android
+  purchaseToken?: string;
+  orderId?: string;
+}
+
+export interface ManualSubscriptionLookupResult {
+  userId: string;
+  userEmail?: string | null;
+  paymentSummaryId?: string | null;
+  subscriptionId?: string | null;
+  planId?: string | null;
+  transactionId?: string | null;
+  status?: string | null;
+  platform?: ManualSubscriptionPlatform | null;
+  productId?: string | null;
+}
+
+export interface ManualSubscriptionLookupResponse {
+  results: ManualSubscriptionLookupResult[];
+}
+
+export interface ManualSubscriptionAssignBase {
+  userId: string;
+  platform: ManualSubscriptionPlatform;
+  planId: string;
+  reason: string;
+  notes?: string;
+}
+
+export interface ManualSubscriptionAssignRepairRequest extends ManualSubscriptionAssignBase {
+  mode: 'repair';
+  transactionId: string;
+  // optional proof fields
+  receiptData?: string;
+  originalTransactionId?: string;
+  purchaseToken?: string;
+  orderId?: string;
+}
+
+export interface ManualSubscriptionAssignForceRequest extends ManualSubscriptionAssignBase {
+  mode: 'force';
+  amount: number;
+  currency: string;
+  // optional proof fields
+  receiptData?: string;
+  originalTransactionId?: string;
+  purchaseToken?: string;
+  orderId?: string;
+}
+
+export type ManualSubscriptionAssignRequest =
+  | ManualSubscriptionAssignRepairRequest
+  | ManualSubscriptionAssignForceRequest;
+
+export interface ManualSubscriptionAssignResponse {
+  subscriptionId: string;
+  planId: string;
+  userId: string;
+  mode: ManualSubscriptionMode;
+}
+
+export interface SubscriptionPlanListItem {
+  id: string;
+  name: string;
+  iosProductId?: string | null;
+  androidProductId?: string | null;
+  productId?: string | null;
+  price?: number | null;
+  currency?: string | null;
+  duration?: string | null;
+  durationInterval?: number | null;
+  isActive?: boolean | null;
+}
+
+export interface SubscriptionPlansResponse {
+  plans: SubscriptionPlanListItem[];
+}
+
+export interface ManualTransactionDetailsResponse {
+  transactionId: string;
+  userId?: string | null;
+  platform?: ManualSubscriptionPlatform | null;
+  planId?: string | null;
+  productId?: string | null;
+  userFullName?: string | null;
+  userEmail?: string | null;
+  planName?: string | null;
+  status?: string | null;
+  rawStatus?: string | null;
+  rawPaymentStatus?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  createdAt?: string | null;
+  raw?: unknown;
 }

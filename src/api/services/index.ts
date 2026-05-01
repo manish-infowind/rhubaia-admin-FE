@@ -63,3 +63,6 @@ export { PrivacyPolicyService } from './privacyPolicyService';
 
 // Index Page Services
 export { IndexPageService } from './indexPageService';
+
+// Manual Subscription Assignment
+export { ManualSubscriptionService } from './manualSubscriptionService';

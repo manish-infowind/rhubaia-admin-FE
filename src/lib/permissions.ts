@@ -17,10 +17,21 @@ export const PERMISSIONS = {
 
   // Activity Logs (Admin Actions)
   ACTIVITY_LOGS: 'activity_logs',
+
+  // Subscriptions (Manual Repair/Assign)
+  SUBSCRIPTION_MANAGEMENT: 'subscription_management',
   
   // All Allowed (Super Admin)
   ALL_ALLOWED: 'all_allowed',
 } as const;
+
+export const canReadSubscriptionManagement = (user: User | null | undefined): boolean => {
+  return canPerformAction(user, PERMISSIONS.SUBSCRIPTION_MANAGEMENT, 'read');
+};
+
+export const canUpdateSubscriptionManagement = (user: User | null | undefined): boolean => {
+  return canPerformAction(user, PERMISSIONS.SUBSCRIPTION_MANAGEMENT, 'update');
+};
 
 /**
  * Check if user has super_admin role

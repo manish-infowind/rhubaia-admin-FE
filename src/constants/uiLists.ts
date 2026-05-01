@@ -11,6 +11,7 @@ export const tableConfig = [
   { label: "Contact No.", sortKey: "phone" },
   { label: "Email", sortKey: "email" },
   { label: "Account Status", sortKey: "accountStatusName" },
+  { label: "Current Plan", sortKey: null },
   { label: "Gender", sortKey: "gender" },
   { label: "Paused", sortKey: null },
   { label: "Is Deleted", sortKey: null },

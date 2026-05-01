@@ -19,6 +19,7 @@ export { EnquiryService } from './services/enquiryService';
 export { UserManagementService } from './services/userManagementService';
 export { AdminManagementService } from './services/adminManagementService';
 export { ActivityLogsService } from './services/activityLogsService';
+export { ManualSubscriptionService } from './services/manualSubscriptionService';
 
 // Export hooks
 export { useProfile } from './hooks/useProfile';
@@ -30,3 +31,4 @@ export { useUserManagement } from './hooks/useUserManagement';
 export { useAdminManagement } from './hooks/useAdminManagement'; 
 export { useActivityLogs, useAdminUsers } from './hooks/useActivityLogs';
 export { useActivityLogsGraph } from './hooks/useActivityLogs';
+export { useManualSubscriptionLookup, useManualSubscriptionAssign } from './hooks/useManualSubscription';

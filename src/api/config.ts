@@ -148,6 +148,13 @@ export const API_CONFIG = {
       USERS: '/activity-logs/users',
       GRAPH: '/activity-logs/graph',
     },
+    SUBSCRIPTIONS: {
+      MANUAL_LOOKUP: '/subscriptions/manual/lookup',
+      MANUAL_ASSIGN: '/subscriptions/manual/assign',
+      PLANS: '/subscriptions/plans',
+      MANUAL_TRANSACTION_QUERY: '/subscriptions/manual/transaction',
+      MANUAL_TRANSACTION_DETAILS: '/subscriptions/manual/transaction/:transactionId',
+    },
   },
 } as const;
 

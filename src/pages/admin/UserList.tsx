@@ -336,6 +336,15 @@ const UsersList = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {user.currentPlan ? (
+                                                    <Badge variant="secondary">{user.currentPlan}</Badge>
+                                                ) : (
+                                                    <span className="text-muted-foreground">—</span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="font-medium">
                                             {formatGender(user.gender)}
                                         </TableCell>
                                         <TableCell>

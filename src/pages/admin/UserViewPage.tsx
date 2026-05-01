@@ -22,6 +22,9 @@ import {
 import { useUserManagement } from "@/api/hooks/useUserManagement";
 import PageLoader from "@/components/common/PageLoader";
 import RetryPage from "@/components/common/RetryPage";
+import { ManualSubscriptionAssignment } from "@/components/admin/subscriptions/ManualSubscriptionAssignment";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store/store";
 
 // Helper function to format gender
 const formatGender = (gender: 'm' | 'f' | 'o'): string => {
@@ -68,6 +71,7 @@ const UserViewPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const userId = id || '';
+    const loginState = useSelector((state: RootState) => state.auth.loginState);
 
     const { data: userResponse, isLoading, error } = useUserManagement().useUserDetails(userId);
 
@@ -640,6 +644,9 @@ const UserViewPage = () => {
                 )}
 
                 <Separator />
+
+                {/* Manual Subscription Assignment (admin repair/force assign) */}
+                <ManualSubscriptionAssignment user={user} loginUser={loginState} />
 
                 {/* Connection History */}
                 {hasConnectionHistory && connectionHistory && (
