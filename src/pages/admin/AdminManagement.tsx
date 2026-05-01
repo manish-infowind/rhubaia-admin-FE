@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { canAccessAdminManagement } from "@/lib/permissions";
@@ -1010,24 +1011,31 @@ export default function AdminManagement() {
                 className="pl-10"
               />
             </div>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 border border-border rounded-md bg-background text-sm"
-            >
-              {roleList?.map(list => (
-                <option key={list?.value} value={list?.value}>{list?.name}</option>
-              ))}
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-border rounded-md bg-background text-sm"
-            >
-              {activeList?.map(list => (
-                <option key={list?.value} value={list?.value}>{list?.name}</option>
-              ))}
-            </select>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleList?.map((list) => (
+                  <SelectItem key={list?.value} value={list?.value}>
+                    {list?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeList?.map((list) => (
+                  <SelectItem key={list?.value} value={list?.value}>
+                    {list?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

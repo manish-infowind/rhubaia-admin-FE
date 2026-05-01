@@ -160,7 +160,7 @@ export default function RolesManagement() {
         page="roles"
         heading="Roles Management"
         subHeading="Manage user roles and their permissions"
-        openModal={openRoleModal}
+        openModal={canCreate ? openRoleModal : undefined}
       />
 
       <Card>
