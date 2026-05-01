@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Lock, Eye, EyeOff, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { checkMatchedPassword, checkStrongPassword } from "@/validations/validations";
+import { CheckEmail, checkMatchedPassword, checkStrongPassword } from "@/validations/validations";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "@/redux/features/authSlice";
 import { useProfile } from "@/api/hooks/useProfile";
+import { usePassword } from "@/api/hooks/usePassword";
 import { AuthService } from "@/api/services/authService";
 import { authStorage } from "@/lib/authStorage";
 
@@ -25,6 +26,7 @@ interface PasswordChangeModalProps {
   onClose: () => void;
   type?: string; // Optional: "forgotpassword" or undefined
   clearType?: () => void; // Optional: function to clear modal type
+  initialEmail?: string;
 }
 
 export function PasswordChangeModal({
@@ -32,10 +34,12 @@ export function PasswordChangeModal({
   onClose,
   type,
   clearType,
+  initialEmail,
 }: PasswordChangeModalProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { changePassword, changingPassword: isChangingPassword } = useProfile();
+  const { forgotPassword, isForgottingPassword } = usePassword();
   const { toast } = useToast();
 
   const [step, setStep] = useState('password');
@@ -51,6 +55,10 @@ export function PasswordChangeModal({
     confirmPassword: '',
     otp: '',
   });
+
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmailError, setForgotEmailError] = useState<string | null>(null);
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Real-time validation state
   const [passwordValidation, setPasswordValidation] = useState(checkStrongPassword(''));
@@ -77,6 +85,14 @@ export function PasswordChangeModal({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (type?.toLowerCase() !== "forgotpassword") return;
+    if (!isOpen) return;
+    setForgotEmail(initialEmail?.trim() || '');
+    setForgotEmailError(null);
+    setForgotSent(false);
+  }, [initialEmail, isOpen, type]);
 
 
   // Handle hard reload scenarios
@@ -197,6 +213,9 @@ export function PasswordChangeModal({
     setOtpError(null);
     setCountdown(5);
     setPasswordChanged(false);
+    setForgotEmail('');
+    setForgotEmailError(null);
+    setForgotSent(false);
 
     // Clear any pending countdown
     if (countdownRef.current) {
@@ -256,10 +275,28 @@ export function PasswordChangeModal({
       : 'Success';
 
   const SubHeading = (step?.toLowerCase() === 'otp' || type?.toLowerCase() === "forgotpassword")
-    ? `Enter the 6-digit OTP sent to your email "${"admin@gmail.com"}" to complete the password change.`
+    ? `We’ll email you a secure reset link. For security, we cannot show whether an email exists.`
     : step === 'password'
       ? 'Enter your current password and choose a new one.'
       : 'Password changed successfully! You will be redirected to login page.'
+
+  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = forgotEmail.trim();
+    const validationError = CheckEmail(email);
+    if (validationError) {
+      setForgotEmailError(validationError);
+      return;
+    }
+
+    setForgotEmailError(null);
+    forgotPassword(
+      { email },
+      {
+        onSuccess: () => setForgotSent(true),
+      } as any,
+    );
+  };
 
 
   return (
@@ -271,14 +308,68 @@ export function PasswordChangeModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            {HeadingText}
+            {type?.toLowerCase() === "forgotpassword" ? "Reset admin password" : HeadingText}
           </DialogTitle>
           <DialogDescription>
             {SubHeading}
           </DialogDescription>
         </DialogHeader>
 
-        {(step?.toLowerCase() === 'otp' || type?.toLowerCase() === "forgotpassword")
+        {type?.toLowerCase() === "forgotpassword"
+          ? (
+            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgotEmail">Email</Label>
+                <Input
+                  id="forgotEmail"
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => {
+                    setForgotEmail(e.target.value);
+                    if (forgotEmailError) setForgotEmailError(null);
+                  }}
+                  placeholder="admin@example.com"
+                  required
+                />
+                {forgotEmailError && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <X className="h-4 w-4 mr-1" />
+                    {forgotEmailError}
+                  </p>
+                )}
+              </div>
+
+              {forgotSent && (
+                <div className="rounded-md border bg-muted/20 p-3 text-sm">
+                  <p className="font-medium">Check your inbox (and spam).</p>
+                  <p className="text-muted-foreground mt-1">
+                    The link expires in 30 minutes.
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={closeModal} disabled={isForgottingPassword}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isForgottingPassword}
+                  className="bg-brand-green hover:bg-brand-green/90 text-white"
+                >
+                  {isForgottingPassword ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send reset link"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          )
+          : (step?.toLowerCase() === 'otp')
           ? <form onSubmit={(e) => {
               e.preventDefault();
               // OTP verification is commented out - this is for forgot password flow

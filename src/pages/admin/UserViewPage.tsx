@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     User,
     Mail,
@@ -18,6 +24,8 @@ import {
     Target,
     Mic,
     FileText,
+    Loader2,
+    Lock,
 } from "lucide-react";
 import { useUserManagement } from "@/api/hooks/useUserManagement";
 import PageLoader from "@/components/common/PageLoader";
@@ -73,7 +81,13 @@ const UserViewPage = () => {
     const userId = id || '';
     const loginState = useSelector((state: RootState) => state.auth.loginState);
 
-    const { data: userResponse, isLoading, error } = useUserManagement().useUserDetails(userId);
+    const {
+        useUserDetails,
+        sendPasswordResetEmail,
+        isSendingPasswordResetEmail,
+    } = useUserManagement();
+    const { data: userResponse, isLoading, error } = useUserDetails(userId);
+    const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
     const backToUserHandler = () => {
         navigate('/admin/users');
@@ -81,6 +95,17 @@ const UserViewPage = () => {
 
     // Extract user data from API response
     const user = userResponse?.data;
+    const resetEmailTarget = useMemo(() => {
+        const email = (user?.email || '').trim();
+        return email || null;
+    }, [user?.email]);
+
+    const onConfirmSendReset = () => {
+        if (!userId) return;
+        sendPasswordResetEmail({ id: userId, email: resetEmailTarget });
+        setIsResetConfirmOpen(false);
+    };
+
     const connectionHistory = user?.connectionHistory;
     const hasConnectionHistory = Boolean(
         connectionHistory &&
@@ -136,14 +161,79 @@ const UserViewPage = () => {
                         User Details
                     </h1>
                 </div>
-                <Button
-                    variant="outline"
-                    onClick={() => navigate(`/admin/users/${userId}/edit`)}
-                >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsResetConfirmOpen(true)}
+                        disabled={!resetEmailTarget || isSendingPasswordResetEmail}
+                        title="Sends a reset link to the user’s email. Admin cannot view or set the password."
+                    >
+                        {isSendingPasswordResetEmail ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Sending...
+                            </>
+                        ) : (
+                            <>
+                                <Lock className="h-4 w-4 mr-2" />
+                                Send password reset email
+                            </>
+                        )}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate(`/admin/users/${userId}/edit`)}
+                    >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                    </Button>
+                </div>
             </div>
+
+            <Dialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Send password reset email?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            This will send a reset code to the user's email address.
+                        </p>
+                        <div className="text-sm">
+                            <p className="font-medium">Email</p>
+                            <p className="text-muted-foreground break-all">
+                                {resetEmailTarget || "No email on file"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Sends a reset link to the user’s email. Admin cannot view or set the password.
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsResetConfirmOpen(false)}
+                                disabled={isSendingPasswordResetEmail}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={onConfirmSendReset}
+                                disabled={!resetEmailTarget || isSendingPasswordResetEmail}
+                                className="bg-brand-green hover:bg-brand-green/90 text-white"
+                            >
+                                {isSendingPasswordResetEmail ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    "Send"
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <div className="space-y-6">
                 {/* User Header */}

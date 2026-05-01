@@ -82,5 +82,21 @@ export class UserManagementService {
   /**
    * (Ban/Unban removed from web admin UI)
    */
+
+  /**
+   * Send password reset email to a user (admin-triggered)
+   * POST /admin/users/:userId/password-reset-email
+   */
+  static async sendPasswordResetEmail(
+    id: number | string,
+  ): Promise<ApiResponse<{ userId: string }>> {
+    try {
+      const url = API_CONFIG.ENDPOINTS.USERS.PASSWORD_RESET_EMAIL.replace(':id', String(id));
+      const response = await apiClient.post<{ userId: string }>(url);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 

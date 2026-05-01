@@ -55,6 +55,7 @@ export const API_CONFIG = {
       BAN: '/users/:id/ban',
       MODERATION_ACTIONS: '/users/:id/moderation-actions',
       UNBAN: '/users/:id/unban',
+      PASSWORD_RESET_EMAIL: '/users/:id/password-reset-email',
     },
     ADMIN_PROFILE: {
       PROFILE: '/admin-profile',

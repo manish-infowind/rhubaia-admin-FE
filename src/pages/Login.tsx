@@ -363,8 +363,7 @@ const Login = () => {
                   onClick={openForgotPasswordHandler}
                   className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4" />
-                  forgot password
+                  Forgot password?
                 </Link>
               </div>
             </CardContent>
@@ -387,6 +386,7 @@ const Login = () => {
         isOpen={showPasswordModal}
         onClose={closeForgotPasswordHandler}
         clearType={clearModalType}
+        initialEmail={loginUser.email}
       />
     </div>
   );

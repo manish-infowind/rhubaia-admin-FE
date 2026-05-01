@@ -18,8 +18,8 @@ export const usePassword = () => {
     onSuccess: (response) => {
       if (response.success) {
         toast({
-          title: "Success",
-          description: response.data?.message || response.message || "Password reset email sent successfully",
+          title: "Reset link requested",
+          description: "If the email exists, we sent a reset link",
         });
       }
     },

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { UserManagementService } from '../services/userManagementService';
 import { UserListParams, UpdateUserRequest, UserListItem, UserDetails } from '../types';
+import { HTTP_STATUS } from '../config';
 
 export const userKeys = {
   all: ['users'] as const,
@@ -434,6 +435,37 @@ export const useUserManagement = (params?: UserListParams) => {
     },
   });
 
+  // Send password reset email mutation (admin-triggered)
+  const sendPasswordResetEmailMutation = useMutation({
+    mutationFn: ({ id }: { id: number | string; email?: string | null }) =>
+      UserManagementService.sendPasswordResetEmail(id),
+    onSuccess: (response, variables) => {
+      if (response.success) {
+        toast({
+          title: "Reset email sent",
+          description: `Reset email sent to ${variables.email || 'user email'}`,
+        });
+      }
+    },
+    onError: (error: any) => {
+      const status = Number(error?.status);
+      if (status === HTTP_STATUS.NOT_FOUND) {
+        toast({
+          title: "User not found",
+          description: "User not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to send password reset email. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     users,
     pagination,
@@ -447,6 +479,8 @@ export const useUserManagement = (params?: UserListParams) => {
     isTogglingPause: togglePauseMutation.isPending,
     deleteUser: deleteUserMutation.mutate,
     isDeleting: deleteUserMutation.isPending,
+    sendPasswordResetEmail: sendPasswordResetEmailMutation.mutate,
+    isSendingPasswordResetEmail: sendPasswordResetEmailMutation.isPending,
   };
 };
 

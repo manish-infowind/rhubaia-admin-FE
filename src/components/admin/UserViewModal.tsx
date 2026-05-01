@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useUserManagement } from "@/api/hooks/useUserManagement";
 import {
     Carousel,
     CarouselContent,
@@ -32,6 +33,8 @@ import {
     Target,
     Mic,
     FileText,
+    Loader2,
+    Lock,
 } from "lucide-react";
 import { UserDetails } from "@/api/types";
 
@@ -75,6 +78,8 @@ export function UserViewModal({
 }: UserViewModalProps) {
     if (!user) return null;
 
+    const { sendPasswordResetEmail, isSendingPasswordResetEmail } = useUserManagement();
+
     const getStatusBadgeVariant = (status: number, isPaused: boolean, isDeleted: boolean) => {
         if (isDeleted) return 'destructive';
         if (isPaused) return 'secondary';
@@ -93,6 +98,25 @@ export function UserViewModal({
                             User Details
                         </DialogTitle>
                         <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => sendPasswordResetEmail({ id: user.uuid, email: user.email })}
+                                disabled={!user.email || isSendingPasswordResetEmail}
+                                title="Sends a reset link to the user’s email. Admin cannot view or set the password."
+                            >
+                                {isSendingPasswordResetEmail ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="h-4 w-4 mr-2" />
+                                        Send reset email
+                                    </>
+                                )}
+                            </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
