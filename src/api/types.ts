@@ -1018,3 +1018,101 @@ export const FEATURES = {
   DASHBOARD: 'dashboard',
   DASHBOARD_ANALYTICS: 'dashboard-analytics',
 } as const;
+
+// Activity Logs (Admin Action Tracking)
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
+
+export type ActivityType =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'view'
+  | 'login'
+  | 'logout'
+  | 'other';
+
+export interface ActivityLogItem {
+  id: string;
+  timestamp: string; // ISO 8601
+  adminId: string;
+  action: string;
+  type: ActivityType;
+  feature?: string;
+  httpMethod?: HttpMethod;
+  statusCode?: number;
+  responseTimeMs?: number;
+  details?: string;
+  entity?: string;
+  entityName?: string;
+  endpoint?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  requestBody?: Record<string, any> | null;
+}
+
+export interface ActivityLogsResponse {
+  data: ActivityLogItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+}
+
+export interface ActivityLogQueryParams {
+  page?: number;
+  limit?: number;
+  sortBy?: 'timestamp' | 'admin_id';
+  sortOrder?: 'asc' | 'desc';
+  adminId?: string;
+  httpMethod?: HttpMethod;
+  search?: string;
+  startDate?: string; // ISO 8601
+  endDate?: string; // ISO 8601
+}
+
+export interface ActivityLogsGraphPoint {
+  /** bucket label (day/week/month) - returned by API */
+  bucket: string;
+  total_actions: number;
+  create: number;
+  update: number;
+  read: number;
+  delete: number;
+}
+
+export interface ActivityLogsGraphSeries {
+  adminId: string;
+  adminLabel: string;
+  points: ActivityLogsGraphPoint[];
+  summary: ActivityLogsGraphSummary;
+}
+
+export interface ActivityLogsGraphSummary {
+  total_actions: number;
+  create: number;
+  update: number;
+  read: number;
+  delete: number;
+}
+
+export interface ActivityLogsGraphFilters {
+  adminId?: string;
+  httpMethod?: HttpMethod;
+  search?: string;
+  timeRange?: 'daily' | 'weekly' | 'monthly';
+  startDate?: string;
+  endDate?: string;
+  days?: number;
+}
+
+export interface ActivityLogsGraphResponse {
+  filters: ActivityLogsGraphFilters;
+  /** Overall summary across all series */
+  summary: ActivityLogsGraphSummary;
+  /** Multi-admin series. If adminId filter is used, this may contain a single series. */
+  series: ActivityLogsGraphSeries[];
+}

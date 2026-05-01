@@ -20,6 +20,7 @@ import AiUsage from "./pages/admin/AiUsage";
 import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
+import ActivityLogs from "./pages/admin/ActivityLogs";
 import { AUTH_LOGOUT_EVENT } from "@/lib/authStorage";
 
 const queryClient = new QueryClient();
@@ -161,6 +162,16 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <UserEditPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/activity-logs"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ActivityLogs />
                 </AdminLayout>
               </ProtectedRoute>
             }

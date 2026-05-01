@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for API calls - production server
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/admin',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://192.168.1.57:3000/admin',
   
   // Default timeout for API requests (in milliseconds)
   TIMEOUT: 10000,
@@ -142,6 +142,11 @@ export const API_CONFIG = {
       TOGGLE_STATUS: '/admin-management/:id/toggle-status',
       CHANGE_PASSWORD: '/admin-management/:id/password',
       DETAILS: '/admin-management/:id',
+    },
+    ACTIVITY_LOGS: {
+      LIST: '/activity-logs',
+      USERS: '/activity-logs/users',
+      GRAPH: '/activity-logs/graph',
     },
   },
 } as const;

@@ -14,6 +14,9 @@ export const PERMISSIONS = {
   
   // Permission Management Permissions
   PERMISSION_MANAGEMENT: 'permission_management',
+
+  // Activity Logs (Admin Actions)
+  ACTIVITY_LOGS: 'activity_logs',
   
   // All Allowed (Super Admin)
   ALL_ALLOWED: 'all_allowed',

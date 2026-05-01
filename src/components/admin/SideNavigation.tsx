@@ -9,6 +9,7 @@ import {
   Key,
   UserCheck,
   Sparkles,
+  History,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ import {
   canManageRoles,
   canManagePermissions,
   canPerformAction,
+  PERMISSIONS,
 } from "@/lib/permissions";
 import React, { useState, useEffect } from "react";
 
@@ -61,6 +63,12 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
       href: "/admin/ai-usage",
       icon: Sparkles,
       canAccess: canPerformAction(loginState as any, "ai_usage", "read"),
+    },
+    {
+      name: "Activity Logs",
+      href: "/admin/activity-logs",
+      icon: History,
+      canAccess: canPerformAction(loginState as any, PERMISSIONS.ACTIVITY_LOGS, "read"),
     },
   ].filter((item) => item.canAccess);
 

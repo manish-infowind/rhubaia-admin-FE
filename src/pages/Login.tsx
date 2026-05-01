@@ -17,6 +17,7 @@ import { AuthService } from "@/api/services/authService";
 import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
+  const currentYear = new Date().getFullYear();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
@@ -376,7 +377,7 @@ const Login = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <p>© 2024 Rhubaia. All rights reserved.</p>
+          <p>© {currentYear} Rhubaia. All rights reserved.</p>
         </motion.div>
       </div>
 

@@ -18,6 +18,7 @@ export { profileService } from './services/profileService';
 export { EnquiryService } from './services/enquiryService';
 export { UserManagementService } from './services/userManagementService';
 export { AdminManagementService } from './services/adminManagementService';
+export { ActivityLogsService } from './services/activityLogsService';
 
 // Export hooks
 export { useProfile } from './hooks/useProfile';
@@ -27,3 +28,5 @@ export { useRoles, useAdminRoles, useRolePermissions } from './hooks/useRoles';
 export { useEnquiries } from './hooks/useEnquiries';
 export { useUserManagement } from './hooks/useUserManagement';
 export { useAdminManagement } from './hooks/useAdminManagement'; 
+export { useActivityLogs, useAdminUsers } from './hooks/useActivityLogs';
+export { useActivityLogsGraph } from './hooks/useActivityLogs';
