@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Base URL for API calls - production server
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://192.168.1.57:3000/admin',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/admin',
   
   // Default timeout for API requests (in milliseconds)
   TIMEOUT: 10000,
@@ -21,6 +21,8 @@ export const API_CONFIG = {
       LOGOUT: '/auth/logout',
       REFRESH: '/auth/refresh',
       VERIFY_2FA: '/auth/verify-2fa',
+      LOGIN_VERIFY_OTP: '/login/verify-otp',
+      LOGIN_RESEND_OTP: '/login/resend-otp',
     },
     PASSWORD: {
       FORGOT: '/forgot-password',
@@ -155,6 +157,12 @@ export const API_CONFIG = {
       PLANS: '/subscriptions/plans',
       MANUAL_TRANSACTION_QUERY: '/subscriptions/manual/transaction',
       MANUAL_TRANSACTION_DETAILS: '/subscriptions/manual/transaction/:transactionId',
+    },
+    CONTACT_SUPPORT: {
+      LIST: '/contact-support',
+      DETAILS: '/contact-support/:id',
+      REPLY: '/contact-support/:id/reply',
+      UPDATE: '/contact-support/:id',
     },
   },
 } as const;

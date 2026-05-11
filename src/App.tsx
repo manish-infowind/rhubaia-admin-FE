@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Login from "./pages/Login";
+import LoginOtp from "./pages/LoginOtp";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginInfo, logout } from "@/redux/features/authSlice";
@@ -21,6 +22,8 @@ import UsersList from "./pages/admin/UserList";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
 import ActivityLogs from "./pages/admin/ActivityLogs";
+import ContactSupportList from "./pages/admin/ContactSupportList";
+import ContactSupportDetail from "./pages/admin/ContactSupportDetail";
 import { AUTH_LOGOUT_EVENT } from "@/lib/authStorage";
 
 const queryClient = new QueryClient();
@@ -63,6 +66,7 @@ const App = () => (
         <AuthInitializer />
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/login-otp" element={<LoginOtp />} />
 
           {/* Admin Routes - Protected */}
           <Route
@@ -172,6 +176,26 @@ const App = () => (
               <ProtectedRoute>
                 <AdminLayout>
                   <ActivityLogs />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/contact-support"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ContactSupportList />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/contact-support/:id"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <ContactSupportDetail />
                 </AdminLayout>
               </ProtectedRoute>
             }

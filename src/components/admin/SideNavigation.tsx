@@ -10,6 +10,7 @@ import {
   UserCheck,
   Sparkles,
   History,
+  MessageSquare,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +70,12 @@ export function SideNavigation({ isOpen, onClose }: SideNavigationProps) {
       href: "/admin/activity-logs",
       icon: History,
       canAccess: canPerformAction(loginState as any, PERMISSIONS.ACTIVITY_LOGS, "read"),
+    },
+    {
+      name: "Contact Support",
+      href: "/admin/contact-support",
+      icon: MessageSquare,
+      canAccess: canPerformAction(loginState as any, "contact_support", "read"),
     },
   ].filter((item) => item.canAccess);
 

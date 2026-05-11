@@ -15,6 +15,7 @@ import { loginInfo, setLoading, setLoggingIn } from "@/redux/features/authSlice"
 import type { RootState } from "@/redux/store/store";
 import { AuthService } from "@/api/services/authService";
 import { useToast } from "@/hooks/use-toast";
+import { twoFactorStore } from "@/lib/twoFactorStore";
 
 const Login = () => {
   const currentYear = new Date().getFullYear();
@@ -114,6 +115,15 @@ const Login = () => {
 
       if (response.success && response.data) {
         const loginData = response.data as any;
+
+        if (loginData?.twoFactorRequired === true && typeof loginData?.twoFactorToken === "string") {
+          // Store token in memory only, then go to OTP route
+          twoFactorStore.set({ token: loginData.twoFactorToken, email: loginUser.email });
+          dispatch(setLoggingIn(false));
+          dispatch(setLoading(false));
+          navigate("/login-otp", { replace: true });
+          return;
+        }
         
         // Get user data from localStorage (stored by AuthService.login)
         const userData = AuthService.getCurrentUser();

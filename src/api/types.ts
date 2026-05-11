@@ -88,6 +88,25 @@ export interface LoginResponse2FA extends LoginResponseLegacy {
   tempToken?: string;
 }
 
+// Admin Login 2FA (Email OTP)
+export interface AdminLoginStartResponse {
+  twoFactorRequired: boolean;
+  twoFactorToken: string;
+}
+
+export interface AdminVerifyOtpRequest {
+  twoFactorToken: string;
+  otp: string;
+}
+
+export interface AdminResendOtpRequest {
+  twoFactorToken: string;
+}
+
+export interface AdminResendOtpResponse {
+  twoFactorRequired: true;
+}
+
 // Password Management Types
 export interface ForgotPasswordRequest {
   email: string;
@@ -987,6 +1006,100 @@ export interface UserListParams {
 
 export interface DeleteUserRequest {
   deletionReason?: string;
+}
+
+// Contact Support (Admin)
+export type ContactSupportStatusFilter = 'all' | 'resolved' | 'unresolved';
+
+export interface ContactSupportLastRepliedBy {
+  adminId: string;
+  adminName: string;
+  adminEmail: string;
+}
+
+export interface ContactSupportTicketListItem {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  imageUrl?: string | null;
+  isResolved: boolean;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+  lastReplyAt?: string | null; // ISO
+  lastRepliedBy?: ContactSupportLastRepliedBy | null;
+}
+
+export interface ContactSupportListParams {
+  page?: number;
+  limit?: number;
+  sortBy?: 'created_at' | 'updated_at';
+  sortOrder?: 'asc' | 'desc';
+  status?: ContactSupportStatusFilter;
+  search?: string;
+}
+
+export interface ContactSupportTicketListResponse {
+  items: ContactSupportTicketListItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ContactSupportTicket {
+  id: number;
+  name: string;
+  email: string;
+  userId?: string | null;
+  message: string;
+  imageUrl?: string | null;
+  isResolved: boolean;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}
+
+export type ContactSupportHistoryItem =
+  | {
+      type: 'user';
+      message: string;
+      createdAt: string; // ISO
+      name: string;
+      email: string;
+      imageUrl?: string | null;
+    }
+  | {
+      type: 'admin';
+      message: string;
+      createdAt: string; // ISO
+      adminId: string;
+      adminName: string;
+      adminEmail: string;
+    };
+
+export interface ContactSupportDetailResponse {
+  ticket: ContactSupportTicket;
+  history: ContactSupportHistoryItem[];
+}
+
+export interface ContactSupportReplyRequest {
+  message: string;
+  markResolved?: boolean;
+}
+
+export interface ContactSupportReplyResponse {
+  ticketId: number;
+}
+
+export interface ContactSupportUpdateRequest {
+  isResolved: boolean;
+}
+
+export interface ContactSupportUpdateResponse {
+  ticketId: number;
+  isResolved: boolean;
 }
 
 export interface PaginationControlInterface {

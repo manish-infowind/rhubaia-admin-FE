@@ -1,6 +1,17 @@
 import { apiClient } from '../client';
 import { API_CONFIG } from '../config';
-import { LoginRequest, LoginResponse, LoginResponse2FA, RefreshTokenResponse, User, ApiResponse } from '../types';
+import {
+  AdminLoginStartResponse,
+  AdminResendOtpRequest,
+  AdminResendOtpResponse,
+  AdminVerifyOtpRequest,
+  ApiResponse,
+  LoginRequest,
+  LoginResponse,
+  LoginResponse2FA,
+  RefreshTokenResponse,
+  User,
+} from '../types';
 import { authStorage } from '@/lib/authStorage';
 
 export class AuthService {
@@ -181,7 +192,7 @@ export class AuthService {
   }
 
   // Login user - simplified to only send email and password as per API documentation
-  static async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse2FA | LoginResponse>> {
+  static async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse2FA | LoginResponse | AdminLoginStartResponse>> {
     try {
       // API only requires email and password - no device data, IP, or location needed
       const loginData = {
@@ -189,13 +200,18 @@ export class AuthService {
         password: credentials.password,
       };
 
-      const response = await apiClient.post<LoginResponse>(
+      const response = await apiClient.post<any>(
         API_CONFIG.ENDPOINTS.AUTH.LOGIN,
         loginData
       );
 
       if (response.success && response.data) {
         const loginData = response.data;
+
+        // New 2FA flow: backend returns token and no access/refresh tokens yet.
+        if (loginData?.twoFactorRequired === true && typeof loginData?.twoFactorToken === 'string') {
+          return response as ApiResponse<AdminLoginStartResponse>;
+        }
         
         // Handle new API response structure
         if (loginData.tokens) {
@@ -253,6 +269,48 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  static async verifyLoginOtp(payload: AdminVerifyOtpRequest): Promise<ApiResponse<LoginResponse>> {
+    const response = await apiClient.post<LoginResponse>(
+      API_CONFIG.ENDPOINTS.AUTH.LOGIN_VERIFY_OTP,
+      payload,
+    );
+
+    // Reuse same post-login storage logic by calling login() code path is not possible here,
+    // so we store tokens/user if present.
+    if (response.success && response.data) {
+      const data: any = response.data;
+      if (data?.tokens?.accessToken) {
+        authStorage.setTokens(data.tokens.accessToken, data.tokens.refreshToken);
+        const userData: User = {
+          id: data.id,
+          email: data.email,
+          username: data.email.split('@')[0],
+          role: data.is_super_admin ? 'super_admin' : 'admin',
+          profilePic: '',
+          firstName: '',
+          lastName: '',
+          phone: '',
+          location: '',
+          isActive: true,
+          permissions: data.permissions || [],
+          roles: data.roles || [],
+          isSuperAdmin: data.is_super_admin,
+        };
+        authStorage.setCurrentUser(userData);
+        authStorage.setSessionMetadata(data.sessionId, data.is_super_admin);
+      }
+    }
+
+    return response;
+  }
+
+  static async resendLoginOtp(payload: AdminResendOtpRequest): Promise<ApiResponse<AdminResendOtpResponse>> {
+    return apiClient.post<AdminResendOtpResponse>(
+      API_CONFIG.ENDPOINTS.AUTH.LOGIN_RESEND_OTP,
+      payload,
+    );
   }
 
   // Logout user
