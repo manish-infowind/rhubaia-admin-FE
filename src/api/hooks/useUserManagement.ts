@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserManagementService } from '../services/userManagementService';
 import { UserListParams, UpdateUserRequest, UserListItem, UserDetails } from '../types';
 import { HTTP_STATUS } from '../config';
+import { resolveAppImageUrl } from '@/lib/resolveAppImageUrl';
 
 export const userKeys = {
   all: ['users'] as const,
@@ -81,7 +82,9 @@ export const useUserManagement = (params?: UserListParams) => {
     const gender = (mappedGender === 'm' || mappedGender === 'f' || mappedGender === 'o')
       ? mappedGender as 'm' | 'f' | 'o'
       : 'o';
-    const avatarUrl = profile?.avatar_url ?? profile?.profile_image_url ?? raw?.profilePic ?? null;
+    const avatarUrl = resolveAppImageUrl(
+      profile?.avatar_url ?? profile?.profile_image_url ?? raw?.profilePic ?? null,
+    );
     const isActive = Boolean(raw?.is_active ?? raw?.isActive);
     const isDeleted = Boolean(raw?.is_deleted ?? raw?.isDeleted);
     const accountStatus = String(raw?.account_status ?? '').toLowerCase();
@@ -104,7 +107,11 @@ export const useUserManagement = (params?: UserListParams) => {
       profilePic: avatarUrl,
       profileImages: Array.isArray(raw?.profileImages)
         ? raw.profileImages
-        : [profile?.avatar_url, profile?.profile_image_url].filter(Boolean),
+            .map((u: string) => resolveAppImageUrl(u))
+            .filter(Boolean)
+        : [resolveAppImageUrl(profile?.avatar_url), resolveAppImageUrl(profile?.profile_image_url)].filter(
+            Boolean,
+          ),
       isEmailVerified: Boolean(raw?.isEmailVerified ?? raw?.is_email_verified),
       isPhoneVerified: Boolean(raw?.isPhoneVerified ?? false),
       isFaceVerified: Boolean(raw?.isFaceVerified ?? false),
@@ -150,11 +157,11 @@ export const useUserManagement = (params?: UserListParams) => {
     const profileImages = Array.from(
       new Set(
         [
-          profile?.avatar_url,
-          profile?.full_body_image_url,
-          profile?.selfie_url,
-        ].filter(Boolean)
-      )
+          resolveAppImageUrl(profile?.avatar_url),
+          resolveAppImageUrl(profile?.full_body_image_url),
+          resolveAppImageUrl(profile?.selfie_url),
+        ].filter(Boolean),
+      ),
     );
 
     const mappedGender = String(profile?.gender || '').toLowerCase();
@@ -185,7 +192,9 @@ export const useUserManagement = (params?: UserListParams) => {
       username: u?.username ?? null,
       fullName: u?.full_name ?? null,
       signUpDate: u?.sign_up_date ?? null,
-      avatarUrl: u?.profile?.avatar_url ?? u?.profile?.profile_image_url ?? u?.profile_image_url ?? null,
+      avatarUrl: resolveAppImageUrl(
+        u?.profile?.avatar_url ?? u?.profile?.profile_image_url ?? u?.profile_image_url ?? null,
+      ),
       gender: u?.profile?.gender ?? null,
       currentCity: u?.profile?.current_city ?? null,
     });
@@ -242,7 +251,7 @@ export const useUserManagement = (params?: UserListParams) => {
       countryCode: String(raw?.country_code || base.countryCode || ''),
       gender,
       dob: parseDobToIso(profile?.date_of_birth) || base.dob,
-      profilePic: profile?.avatar_url || base.profilePic,
+      profilePic: resolveAppImageUrl(profile?.avatar_url) || base.profilePic,
       profileImages,
       isAccountPaused: !Boolean(raw?.is_active),
       accountCurrentStatus: Number(raw?.profile_completion_status_code ?? base.accountCurrentStatus ?? 0),

@@ -1,7 +1,11 @@
+/** Origin for `/app-images/*` assets (e.g. Azure Front Door). Overrides localhost URLs from the API. */
+export const APP_IMAGES_ORIGIN =
+  import.meta.env.VITE_APP_IMAGES_ORIGIN ?? 'https://rhubaiaprod-bugqdbdydncabdb7.z02.azurefd.net';
+
 // API Configuration
 export const API_CONFIG = {
   // Base URL for API calls - production server
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.rhubaia.com/admin',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://prod-api.rhubaia.com/admin',
   
   // Default timeout for API requests (in milliseconds)
   TIMEOUT: 10000,

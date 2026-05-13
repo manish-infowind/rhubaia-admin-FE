@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { AiUsageHistoryItem } from "@/api/types";
+import { resolveAppImageUrl } from "@/lib/resolveAppImageUrl";
 
 interface AiUsageDetailsModalProps {
   item: AiUsageHistoryItem | null;
@@ -27,6 +28,10 @@ export function AiUsageDetailsModal({
   open,
   onOpenChange,
 }: AiUsageDetailsModalProps) {
+  const resultUrl = item?.result_url
+    ? resolveAppImageUrl(item.result_url) ?? item.result_url
+    : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
@@ -88,9 +93,9 @@ export function AiUsageDetailsModal({
                   <div className="grid gap-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Result URL:</span>{" "}
-                      {item.result_url ? (
+                      {resultUrl ? (
                         <a
-                          href={item.result_url}
+                          href={resultUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="text-brand-green underline"

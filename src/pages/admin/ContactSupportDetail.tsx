@@ -22,6 +22,7 @@ import {
   useContactSupportUpdate,
 } from "@/api/hooks/useContactSupport";
 import { HTTP_STATUS } from "@/api/config";
+import { resolveAppImageUrl } from "@/lib/resolveAppImageUrl";
 
 const ContactSupportDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -173,7 +174,7 @@ const ContactSupportDetail = () => {
           {ticket.imageUrl ? (
             <div className="text-sm">
               <a
-                href={ticket.imageUrl}
+                href={resolveAppImageUrl(ticket.imageUrl) ?? ticket.imageUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-600 hover:underline"
@@ -218,7 +219,7 @@ const ContactSupportDetail = () => {
                     {"imageUrl" in item && item.imageUrl ? (
                       <div className="text-sm mt-2">
                         <a
-                          href={item.imageUrl}
+                          href={resolveAppImageUrl(item.imageUrl) ?? item.imageUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="text-blue-600 hover:underline"

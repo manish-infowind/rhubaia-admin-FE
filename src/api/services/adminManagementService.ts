@@ -1,5 +1,6 @@
 import { apiClient } from "../client";
 import { API_CONFIG } from "../config";
+import { resolveAppImageUrl } from "@/lib/resolveAppImageUrl";
 import {
   ApiResponse,
   AdminUser,
@@ -129,7 +130,7 @@ const normalizeAdminUser = (admin: AdminApiItem): AdminUser => {
     countryCode: admin.countryCode ?? admin.country_code,
     location: admin.location ?? null,
     bio: admin.bio ?? null,
-    profilePic: admin.profilePic ?? admin.avatar_url ?? null,
+    profilePic: resolveAppImageUrl(admin.profilePic ?? admin.avatar_url ?? null),
     isActive: admin.isActive ?? admin.is_active ?? true,
     twoFactorEnabled: admin.twoFactorEnabled ?? false,
     permissions: admin.permissions ?? [],
