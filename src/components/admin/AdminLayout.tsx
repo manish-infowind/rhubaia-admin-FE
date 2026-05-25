@@ -2,6 +2,7 @@ import { useState } from "react";
 import TopNavigation from "./TopNavigation";
 import { SideNavigation } from "./SideNavigation";
 import { AdminThemeProvider } from "./AdminThemeProvider";
+import { AdminRouteGuard } from "@/components/auth/AdminRouteGuard";
 import { motion } from "framer-motion";
 
 interface AdminLayoutProps {
@@ -31,7 +32,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            {children}
+            <AdminRouteGuard>{children}</AdminRouteGuard>
           </motion.main>
         </div>
       </div>

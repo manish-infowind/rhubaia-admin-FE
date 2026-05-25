@@ -30,6 +30,7 @@ export { AdminManagementService } from './adminManagementService';
 
 // User Management Services
 export { UserManagementService } from './userManagementService';
+export { AccountRecoveryService } from './accountRecoveryService';
 
 // Content Services
 export { ContentService } from './contentService';

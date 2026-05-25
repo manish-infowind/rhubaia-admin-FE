@@ -18,7 +18,7 @@ import AdminManagement from "./pages/admin/AdminManagement";
 import RolesManagement from "./pages/admin/RolesManagement";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import AiUsage from "./pages/admin/AiUsage";
-import UsersList from "./pages/admin/UserList";
+import UserManagement from "./pages/admin/UserManagement";
 import UserViewPage from "./pages/admin/UserViewPage";
 import UserEditPage from "./pages/admin/UserEditPage";
 import ActivityLogs from "./pages/admin/ActivityLogs";
@@ -145,7 +145,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AdminLayout>
-                  <UsersList />
+                  <UserManagement />
                 </AdminLayout>
               </ProtectedRoute>
             }

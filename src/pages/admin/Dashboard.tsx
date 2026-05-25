@@ -5,6 +5,7 @@ import { Users, TrendingUp, DollarSign, Sparkles, BarChart3, LineChart as LineCh
 import { ChartCard } from "@/components/admin/dashboard/ChartCard";
 import type { ChartConfig } from "@/components/admin/dashboard/ChartFilters";
 import { useChartData } from "@/hooks/useChartData";
+import { aggregateMetricsByMonth } from "@/lib/chartMonthAggregation";
 import { useDashboardStatsSummary } from "@/hooks/useDashboardStatsSummary";
 import PageHeader from "@/components/common/PageHeader";
 import PageLoader from "@/components/common/PageLoader";
@@ -168,6 +169,18 @@ export default function Dashboard() {
       ) as Array<{ name: string; [key: string]: string | number }>;
     }
 
+    if (userGrowthChart.timeRange === "monthly") {
+      return aggregateMetricsByMonth(
+        points,
+        (item) => item.date,
+        (item) => ({
+          "Total Users": item.users,
+          "New Users": item.newUsers,
+        }),
+        { "Total Users": "last", "New Users": "sum" },
+      );
+    }
+
     return points.map((item) => ({
       name: item.date,
       "Total Users": item.users,
@@ -198,6 +211,18 @@ export default function Dashboard() {
       return Array.from(monthDataMap.values()).sort(
         (a, b) => months.indexOf(String(a.name)) - months.indexOf(String(b.name)),
       ) as Array<{ name: string; [key: string]: string | number }>;
+    }
+
+    if (activeUsersChart.timeRange === "monthly") {
+      return aggregateMetricsByMonth(
+        points,
+        (item) => item.date,
+        (item) => ({
+          "Daily Active": item.dailyActive,
+          "Monthly Active": item.monthlyActive,
+        }),
+        { "Daily Active": "average", "Monthly Active": "last" },
+      );
     }
 
     return points.map((item) => ({
@@ -237,24 +262,32 @@ export default function Dashboard() {
       );
     }
 
+    if (revenueChart.timeRange === "monthly") {
+      return aggregateMetricsByMonth(
+        analytics,
+        (item) => item.date,
+        (item) => ({
+          "Average Revenue Per User": item.averageRevenuePerUser,
+          "Average Revenue Per Paying User": item.averageRevenuePerPayingUser,
+          "Free to Paid Rate": item.freeToPaidRate,
+        }),
+      );
+    }
+
     return analytics.map((item) => {
       const parsed = new Date(item.date);
       const dateLabel = Number.isNaN(parsed.getTime())
         ? item.date
         : revenueChart.timeRange === "weekly"
           ? formatDateUTC(parsed, "weekly")
-          : revenueChart.timeRange === "monthly"
-            ? formatDateUTC(parsed, "monthly")
-            : formatDateUTC(parsed, "daily");
+          : formatDateUTC(parsed, "daily");
 
-      const chartData: { name: string; [key: string]: string | number } = {
+      return {
         name: dateLabel,
         "Average Revenue Per User": item.averageRevenuePerUser,
         "Average Revenue Per Paying User": item.averageRevenuePerPayingUser,
         "Free to Paid Rate": item.freeToPaidRate,
       };
-
-      return chartData;
     });
   }, [revenueData, revenueChart.timeRange, revenueChart.selectedYears]);
 
