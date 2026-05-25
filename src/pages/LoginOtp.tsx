@@ -11,6 +11,7 @@ import { twoFactorStore } from "@/lib/twoFactorStore";
 import { AuthService } from "@/api/services/authService";
 import { useToast } from "@/hooks/use-toast";
 import { loginInfo, setLoading, setLoggingIn } from "@/redux/features/authSlice";
+import { getPostLoginPath } from "@/lib/adminRoutes";
 
 const OTP_LENGTH = 6;
 
@@ -118,7 +119,7 @@ export default function LoginOtp() {
       }
       dispatch(loginInfo(userData));
       twoFactorStore.clear();
-      navigate("/admin", { replace: true });
+      navigate(getPostLoginPath(userData), { replace: true });
     } catch (e: any) {
       const message = String(e?.message || "Invalid OTP");
       setError(message);

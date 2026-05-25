@@ -16,6 +16,7 @@ import type { RootState } from "@/redux/store/store";
 import { AuthService } from "@/api/services/authService";
 import { useToast } from "@/hooks/use-toast";
 import { twoFactorStore } from "@/lib/twoFactorStore";
+import { getPostLoginPath } from "@/lib/adminRoutes";
 
 const Login = () => {
   const currentYear = new Date().getFullYear();
@@ -23,8 +24,8 @@ const Login = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const from = location.state?.from?.pathname || '/admin';
-  const { isAuthenticated, isLoggingIn } = useSelector((state: RootState) => state.auth);
+  const from = location.state?.from?.pathname;
+  const { isAuthenticated, isLoggingIn, loginState } = useSelector((state: RootState) => state.auth);
   const [loginError, setLoginError] = useState<any>(null);
 
   const [loginUser, setLoginUser] = useState({
@@ -74,12 +75,13 @@ const Login = () => {
   };
 
 
-  // Navigate to dashboard when authenticated
+  // Navigate to first permitted page when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/admin', { replace: true });
+      const user = loginState ?? AuthService.getCurrentUser();
+      navigate(getPostLoginPath(user, from), { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, loginState, from]);
 
   // Login Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,8 +136,7 @@ const Login = () => {
           dispatch(setLoggingIn(false));
           dispatch(setLoading(false));
           
-          // Navigate to dashboard
-          navigate('/admin', { replace: true });
+          navigate(getPostLoginPath(userData, from), { replace: true });
         } else {
           throw new Error('Failed to retrieve user data');
         }
@@ -227,7 +228,7 @@ const Login = () => {
             </h1>
 
             <p className="text-sm text-muted-foreground mb-8">
-              Redirecting to Dashboard...
+              Redirecting...
             </p>
           </motion.div>
         </div>

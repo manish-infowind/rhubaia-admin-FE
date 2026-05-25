@@ -1008,6 +1008,52 @@ export interface DeleteUserRequest {
   deletionReason?: string;
 }
 
+export interface DeletedAccountUserInfo {
+  email: string;
+  full_name: string;
+  username: string;
+  is_deleted: boolean;
+  is_active: boolean;
+}
+
+export interface DeletedAccountItem {
+  id: number;
+  uuid: string;
+  user_id: string;
+  user: DeletedAccountUserInfo;
+  deletion_reason: string | null;
+  deletion_type: string;
+  deleted_by_user_id: string | null;
+  deleted_by_admin_id: string | null;
+  is_permanent_delete: boolean;
+  retention_until: string | null;
+  is_recoverable: boolean;
+  can_recover: boolean;
+  recovered_by_admin: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeletedAccountsListParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface DeletedAccountsPagination {
+  page: number;
+  limit: number;
+  offset: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface DeletedAccountsListResponse {
+  items: DeletedAccountItem[];
+  pagination: DeletedAccountsPagination;
+}
+
 // Contact Support (Admin)
 export type ContactSupportStatusFilter = 'all' | 'resolved' | 'unresolved';
 

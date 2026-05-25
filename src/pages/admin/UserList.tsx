@@ -39,6 +39,7 @@ import RetryPage from "@/components/common/RetryPage";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { canPerformAction } from "@/lib/permissions";
+import { getDefaultLandingRoute } from "@/lib/adminRoutes";
 
 // Helper function to format gender
 const formatGender = (gender: 'm' | 'f' | 'o'): string => {
@@ -50,7 +51,11 @@ const formatGender = (gender: 'm' | 'f' | 'o'): string => {
     return genderMap[gender] || gender;
 };
 
-const UsersList = () => {
+interface UsersListProps {
+    embedded?: boolean;
+}
+
+const UsersList = ({ embedded = false }: UsersListProps) => {
     const navigate = useNavigate();
     const loginState = useSelector((state: RootState) => state.auth.loginState);
     const canReadUsers = canPerformAction(loginState as any, "user_management", "read");
@@ -238,23 +243,25 @@ const UsersList = () => {
         );
     }
 
-    if (!canReadUsers) {
+    if (!embedded && !canReadUsers) {
         return (
             <RetryPage
                 message="Access denied. You don't have permission to view system users."
                 btnName="Back"
-                onRetry={() => navigate("/admin")}
+                onRetry={() => navigate(getDefaultLandingRoute(loginState as any))}
             />
         );
     }
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                page="systemuser"
-                heading="System Users"
-                subHeading="Manage and view all system users"
-            />
+            {!embedded && (
+                <PageHeader
+                    page="systemuser"
+                    heading="System Users"
+                    subHeading="Manage and view all system users"
+                />
+            )}
 
             {/* Filters */}
             <div className="flex gap-3 mb-4">
