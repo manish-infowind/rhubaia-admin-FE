@@ -67,10 +67,14 @@ const normalizePagination = (raw: Record<string, unknown> | undefined): DeletedA
   };
 };
 
-export const useDeletedAccounts = (params?: DeletedAccountsListParams) => {
+export const useDeletedAccounts = (
+  params?: DeletedAccountsListParams,
+  options?: { enabled?: boolean },
+) => {
   const query = useQuery({
     queryKey: accountRecoveryKeys.list(params ?? {}),
     queryFn: () => AccountRecoveryService.getDeletedAccounts(params),
+    enabled: options?.enabled !== false,
     staleTime: 0,
     gcTime: 10 * 60 * 1000,
   });
