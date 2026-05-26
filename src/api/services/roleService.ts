@@ -13,6 +13,7 @@ import {
   AdminRolesResponse,
   AssignPermissionsToRoleRequest,
   AssignPermissionsToRoleResponse,
+  RolePermissionItem,
   RolePermissionsResponse,
 } from "../types";
 
@@ -51,6 +52,52 @@ const normalizeRolesListResponse = (
       ...response.data,
       roles: response.data.roles.map((role) =>
         normalizeRole(role as RoleApiItem),
+      ),
+    },
+  };
+};
+
+type RolePermissionApiItem = {
+  id?: number | string;
+  permissionName?: string;
+  permission_name?: string;
+  permissionAllowedActions?: string[] | null;
+  permission_allowed_actions?: string[] | null;
+  roleAllowedActions?: string[] | null;
+  role_allowed_actions?: string[] | null;
+  isAssigned?: boolean;
+  is_assigned?: boolean;
+  assigned?: boolean;
+};
+
+const normalizeRolePermission = (
+  permission: RolePermissionApiItem,
+): RolePermissionItem => ({
+  id: permission.id ?? "",
+  permissionName: permission.permissionName ?? permission.permission_name ?? "",
+  permissionAllowedActions:
+    permission.permissionAllowedActions ??
+    permission.permission_allowed_actions ??
+    null,
+  roleAllowedActions:
+    permission.roleAllowedActions ?? permission.role_allowed_actions ?? null,
+  isAssigned:
+    permission.isAssigned ?? permission.is_assigned ?? permission.assigned,
+});
+
+const normalizeRolePermissionsResponse = (
+  response: ApiResponse<RolePermissionsResponse>,
+): ApiResponse<RolePermissionsResponse> => {
+  if (!response.success || !response.data?.permissions) {
+    return response;
+  }
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      permissions: response.data.permissions.map((permission) =>
+        normalizeRolePermission(permission as RolePermissionApiItem),
       ),
     },
   };
@@ -140,7 +187,7 @@ export class RoleService {
         String(roleId),
       );
       const response = await apiClient.get<RolePermissionsResponse>(url);
-      return response;
+      return normalizeRolePermissionsResponse(response);
     } catch (error) {
       throw error;
     }

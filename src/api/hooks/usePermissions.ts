@@ -21,7 +21,13 @@ export const usePermissions = (options?: { enabled?: boolean }) => {
   const { toast } = useToast();
 
   // Get all permissions
-  const { data: permissions, isLoading: isLoadingPermissions, error: permissionsError } = useQuery({
+  const {
+    data: permissions,
+    isLoading: isLoadingPermissions,
+    isFetching: isFetchingPermissions,
+    isSuccess: isPermissionsSuccess,
+    error: permissionsError,
+  } = useQuery({
     queryKey: permissionKeys.list(),
     queryFn: () => PermissionService.getAllPermissions(),
     enabled: options?.enabled ?? true,
@@ -133,6 +139,8 @@ export const usePermissions = (options?: { enabled?: boolean }) => {
     // State
     permissions: permissions?.data?.permissions || [],
     isLoadingPermissions,
+    isFetchingPermissions,
+    isPermissionsSuccess,
     permissionsError,
     
     // Actions

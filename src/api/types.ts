@@ -267,15 +267,18 @@ export interface AssignPermissionsToRoleResponse {
   }>;
 }
 
+export interface RolePermissionItem {
+  id: number | string;
+  permissionName: string;
+  permissionAllowedActions: string[] | null;
+  roleAllowedActions: string[] | null;
+  isAssigned?: boolean;
+}
+
 export interface RolePermissionsResponse {
   roleId: string | number;
   roleName: string;
-  permissions: Array<{
-    id: number;
-    permissionName: string;
-    permissionAllowedActions: string[] | null;
-    roleAllowedActions: string[] | null;
-  }>;
+  permissions: RolePermissionItem[];
 }
 
 export interface Verify2FARequest {

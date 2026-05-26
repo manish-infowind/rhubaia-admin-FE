@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRolePermissions } from "@/api";
 import { usePermissions } from "@/api/hooks/usePermissions";
 import { Role } from "@/api/types";
+import { getAssignedRolePermissions } from "@/lib/rolePermissions";
 
 interface PermissionCardProps {
     role: Role | null;
@@ -17,16 +18,10 @@ const PermissionCards = ({ role, keyName }: PermissionCardProps) => {
     const { permissions } = usePermissions({ enabled: Boolean(role?.id) });
 
     const allRolePermissions = rolePermissions?.permissions || [];
-    const isAssignedOnlyResponse =
-        allRolePermissions.length > 0 &&
-        allRolePermissions.length < (permissions?.length || Number.MAX_SAFE_INTEGER);
-
-    const assignedPermissions = isAssignedOnlyResponse
-        ? allRolePermissions
-        : allRolePermissions.filter((perm: any) =>
-            perm?.isAssigned === true ||
-            (Array.isArray(perm?.roleAllowedActions) && perm.roleAllowedActions.length > 0)
-        );
+    const assignedPermissions = getAssignedRolePermissions(
+        allRolePermissions,
+        permissions?.length ?? 0,
+    );
 
     return (
         <div className="border-t pt-4">

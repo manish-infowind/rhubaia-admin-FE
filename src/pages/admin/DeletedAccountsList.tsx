@@ -58,7 +58,11 @@ const isAccountRecoverable = (account: DeletedAccountItem): boolean => {
   return account.can_recover === true || account.is_recoverable === true;
 };
 
-const DeletedAccountsList = () => {
+interface DeletedAccountsListProps {
+  enabled?: boolean;
+}
+
+const DeletedAccountsList = ({ enabled = true }: DeletedAccountsListProps) => {
   const loginState = useSelector((state: RootState) => state.auth.loginState);
   const canRecover = canPerformAction(loginState as any, "user_management", "update");
 
@@ -74,7 +78,7 @@ const DeletedAccountsList = () => {
     [currentPage, pageSize],
   );
 
-  const { items, pagination, isLoading, error, refetch } = useDeletedAccounts(queryParams);
+  const { items, pagination, isLoading, error, refetch } = useDeletedAccounts(queryParams, { enabled });
   const { mutate: recoverAccount, isPending: isRecovering } = useRecoverDeletedAccount();
   const [accountToRecover, setAccountToRecover] = useState<DeletedAccountItem | null>(null);
   const [recoveringId, setRecoveringId] = useState<string | null>(null);
@@ -141,10 +145,12 @@ const DeletedAccountsList = () => {
   const totalItems = pagination?.total ?? 0;
   const totalPages = pagination?.totalPages ?? 0;
 
-  if (error) {
+  if (error && enabled) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to load deleted accounts";
     return (
       <RetryPage
-        message="Failed to load deleted accounts"
+        message={errorMessage || "Failed to load deleted accounts"}
         btnName="Retry"
         onRetry={refetch}
       />

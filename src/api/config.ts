@@ -171,6 +171,10 @@ export const API_CONFIG = {
       REPLY: "/contact-support/:id/reply",
       UPDATE: "/contact-support/:id",
     },
+    ACCOUNT_RECOVERY: {
+      LIST: "/account-recovery",
+      RECOVER: "/account-recovery/:id/recover",
+    },
   },
 } as const;
 

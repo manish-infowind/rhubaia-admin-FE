@@ -44,8 +44,8 @@ export default function UserManagement() {
           <UsersList embedded />
         </TabsContent>
 
-        <TabsContent value="deleted" className="mt-0">
-          <DeletedAccountsList />
+        <TabsContent value="deleted" className="mt-0" forceMount hidden={activeTab !== "deleted"}>
+          <DeletedAccountsList enabled={activeTab === "deleted"} />
         </TabsContent>
       </Tabs>
     </div>
