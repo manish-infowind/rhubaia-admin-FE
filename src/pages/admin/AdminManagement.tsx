@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store/store";
 import { canAccessAdminManagement } from "@/lib/permissions";
+import { getAssignedRolePermissions } from "@/lib/rolePermissions";
 import {
   Table,
   TableBody,
@@ -123,16 +124,11 @@ export default function AdminManagement() {
         : [];
 
     return new Set<string>(
-      source
-        .filter(
-          (p: any) =>
-            p?.isAssigned === true ||
-            (Array.isArray(p?.roleAllowedActions) && p.roleAllowedActions.length > 0),
-        )
-        .map((p: any) => p.permissionName)
+      getAssignedRolePermissions(source, permissions?.length ?? 0)
+        .map((p) => p.permissionName)
         .filter(Boolean),
     );
-  }, [editRolePermissions?.permissions, editSelectedRoleId, isEditModalOpen]);
+  }, [editRolePermissions?.permissions, editSelectedRoleId, isEditModalOpen, permissions?.length]);
 
   const roleDerivedPermissionNamesKey = useMemo(() => {
     return Array.from(roleDerivedPermissionNames).sort().join("|");
@@ -643,24 +639,14 @@ export default function AdminManagement() {
     return actions.join(", ");
   };
 
-  const getAssignedRolePermissions = (
+  const getAssignedRolePermissionsForDisplay = (
     permissionsList: Array<{
       permissionName: string;
       roleAllowedActions?: string[] | null;
       isAssigned?: boolean;
     }> | undefined
   ) => {
-    if (!permissionsList) return [];
-    const isAssignedOnlyResponse =
-      permissionsList.length > 0 &&
-      permissionsList.length < (permissions?.length || Number.MAX_SAFE_INTEGER);
-    if (isAssignedOnlyResponse) {
-      return permissionsList;
-    }
-    return permissionsList.filter((permission) =>
-      permission.isAssigned === true ||
-      (Array.isArray(permission.roleAllowedActions) && permission.roleAllowedActions.length > 0)
-    );
+    return getAssignedRolePermissions(permissionsList, permissions?.length ?? 0);
   };
 
   // Format date
@@ -1331,9 +1317,9 @@ export default function AdminManagement() {
                             <Loader2 className="h-3 w-3 animate-spin" />
                             Loading role permissions...
                           </div>
-                        ) : getAssignedRolePermissions(editRolePermissions?.permissions).length > 0 ? (
+                        ) : getAssignedRolePermissionsForDisplay(editRolePermissions?.permissions).length > 0 ? (
                           <div className="max-h-28 overflow-y-auto space-y-1">
-                            {getAssignedRolePermissions(editRolePermissions?.permissions).map((p, idx) => (
+                            {getAssignedRolePermissionsForDisplay(editRolePermissions?.permissions).map((p, idx) => (
                               <div key={`${p.permissionName}-${idx}`} className="text-xs">
                                 <span className="font-medium">{p.permissionName}</span>
                                 <span className="text-muted-foreground"> - {formatRolePermissionActions(p.roleAllowedActions)}</span>
@@ -1709,9 +1695,9 @@ export default function AdminManagement() {
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Loading role permissions...
                     </div>
-                  ) : getAssignedRolePermissions(viewRolePermissions?.permissions).length > 0 ? (
+                  ) : getAssignedRolePermissionsForDisplay(viewRolePermissions?.permissions).length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {getAssignedRolePermissions(viewRolePermissions?.permissions).map((permission, idx) => (
+                      {getAssignedRolePermissionsForDisplay(viewRolePermissions?.permissions).map((permission, idx) => (
                         <div
                           key={`${permission.permissionName}-${idx}`}
                           className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg"

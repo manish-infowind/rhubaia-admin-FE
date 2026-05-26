@@ -37,7 +37,20 @@ const normalizePermission = (permission: PermissionApiItem): Permission => ({
 const normalizePermissionListResponse = (
   response: ApiResponse<PermissionsListResponse>,
 ): ApiResponse<PermissionsListResponse> => {
-  if (!response.success || !response.data?.permissions) {
+  if (!response.success || !response.data) {
+    return response;
+  }
+
+  const raw = response.data as PermissionsListResponse & {
+    Permissions?: PermissionApiItem[];
+  };
+  const list = Array.isArray(raw.permissions)
+    ? raw.permissions
+    : Array.isArray(raw.Permissions)
+      ? raw.Permissions
+      : null;
+
+  if (!list) {
     return response;
   }
 
@@ -45,7 +58,7 @@ const normalizePermissionListResponse = (
     ...response,
     data: {
       ...response.data,
-      permissions: response.data.permissions.map((permission) =>
+      permissions: list.map((permission) =>
         normalizePermission(permission as PermissionApiItem),
       ),
     },
